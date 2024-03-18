@@ -1,8 +1,9 @@
 #bibliotecas
 import pygame
 import random
+import constantes
 import os
-
+ 
 #iniciar
 pygame.init()
 
@@ -181,9 +182,11 @@ while loop:
             game_over = True
     #se a sapinha cair      
     else:
+        tela.fill(azul_claro)
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
+        
         key = pygame.key.get_pressed() #para identificar que a barra de espaço foi precionada
         if key[pygame.K_SPACE]:
             #reiniciar as variaveis para recomeçar o jogo 
