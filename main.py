@@ -42,6 +42,7 @@ sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
 background_imagem = pygame.image.load('ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
 plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
+tela_inicial_imagem = pygame.image.load('telainicial.png') # imagem da tela inicial
 
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
