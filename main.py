@@ -10,6 +10,8 @@ janela_largura = 400
 janela_altura =  600
 tela = pygame.display.set_mode((janela_largura, janela_altura)) # criar uma janela
 pygame.display.set_caption('doodle jump') # nome do jogo
+musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
+pygame.mixer.music.play(-1)
 
 #frame
 clock = pygame.time.Clock()
