@@ -1,6 +1,7 @@
 #bibliotecas
 import pygame
 import random
+import os
 
 #iniciar
 pygame.init()
@@ -17,20 +18,39 @@ pygame.mixer.music.play(-1)
 clock = pygame.time.Clock()
 FPS = 60
 
+#variáveis do jogo 
 rodar = 200
 gravidade = 1 # quão rápido a sapa cai (1 pixel)
 maximo_plataformas = 10 # máximo de plataformas na tela
 rolagem = 0
 background_rolagem = 0
+placar = 0 
+efeito_fim_de_jogo = 0 #efeito tela fechando 
 
 # cores
 branco = (255, 255, 255)
+preto = (0, 0, 0)
+azul = (0, 100, 120)
+azul_claro = (80, 200, 230)
+
+#fontes
+fonte1 = pygame.font.SysFont(None, 28)
 
 #imagens
 sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
 background_imagem = pygame.image.load('ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
 plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
+
+#função para escrever na tela
+def escrever_texto(texto, fonte, cor_texto, x, y):
+    imagem = fonte.render(texto, True, cor_texto)
+    tela.blit(imagem, (x,y))
+
+def desenhar_painel():
+    pygame.draw.rect(tela, azul_claro, (0,0, janela_largura, 30))
+    pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
+    escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
 
 # função para aparecer o background 
 def draw_background(rolagem):
@@ -78,12 +98,6 @@ class Jogador():
                         dy = 0
                         self.vel_y = -20
 
-
-        # colisão com a parte de baixo da tela
-        if self.rect.bottom + dy > janela_altura: # se a sapa for além do chão dao janela
-            dy = 0
-            self.vel_y = -20
-
         if self.rect.top <= rodar:
             if self.vel_y < 0:
                 rolagem = -dy # rolagem é o contrário do movimento da sapa
@@ -121,36 +135,71 @@ class Plataforma(pygame.sprite.Sprite):
 
 platafroma_grupo = pygame.sprite.Group()
 
-sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa
+sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
 
 # plataforma inicial
 plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50)
 platafroma_grupo.add(plataforma)
 
 # loop do jogo
+game_over = False
 loop = True
 while loop:
 
     clock.tick(FPS)
 
-    rolagem = sapa.move()
+    if game_over == False:
+        rolagem = sapa.move()
 
-    background_rolagem += rolagem
-    if background_rolagem >+ 600:
-        background_rolagem = 0 # resetar a posição dos dois backgrounds, para ser infinito
-    draw_background(background_rolagem) # fazer com que o background apareça na tela
+        background_rolagem += rolagem
+        if background_rolagem >+ 600:
+            background_rolagem = 0 # resetar a posição dos dois backgrounds, para ser infinito
+        draw_background(background_rolagem) # fazer com que o background apareça na tela
 
-    if len(platafroma_grupo) < maximo_plataformas:
-        plataforma_largura = random.randint(60, 100) # largura das plataformas (entre 60 e 100)
-        plataforma_x = random.randint(0, janela_largura - plataforma_largura) # posição no eixo x
-        plataforma_y = plataforma.rect.y - random.randint(100, 190) # posição no eixo y
-        plataforma = Plataforma(plataforma_x, plataforma_y, plataforma_largura) # gerar a plataforma
-        platafroma_grupo.add(plataforma)
+        if len(platafroma_grupo) < maximo_plataformas:
+            plataforma_largura = random.randint(60, 100) # largura das plataformas (entre 60 e 100)
+            plataforma_x = random.randint(0, janela_largura - plataforma_largura) # posição no eixo x
+            plataforma_y = plataforma.rect.y - random.randint(100, 190) # posição no eixo y
+            plataforma = Plataforma(plataforma_x, plataforma_y, plataforma_largura) # gerar a plataforma
+            platafroma_grupo.add(plataforma)
 
-    platafroma_grupo.update(rolagem)
+        #atualizar plataforma
+        platafroma_grupo.update(rolagem)
+        
+        #atualizar placar 
+        if rolagem > 0:
+            placar += rolagem
 
-    platafroma_grupo.draw(tela) # adicionar as plataformas à tela
-    sapa.draw()
+        platafroma_grupo.draw(tela) # adicionar as plataformas à tela
+        sapa.draw()
+
+        #desenhar painel 
+        desenhar_painel()
+
+        #ver se a sapa caiu 
+        if sapa.rect.top > janela_altura:
+            game_over = True
+    #se a sapinha cair      
+    else:
+        escrever_texto('GAME OVER', fonte1, azul, 130, 200)
+        escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
+        escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
+        key = pygame.key.get_pressed() #para identificar que a barra de espaço foi precionada
+        if key[pygame.K_SPACE]:
+            #reiniciar as variaveis para recomeçar o jogo 
+            game_over = False
+            placar = 0 
+            rolagem = 0
+            #reposicionar a sapinha  
+            sapa.rect.center = (janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
+            #resetar as plataformas
+            platafroma_grupo.empty()
+            #crias a plataforma de início (de novo)
+            plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50)
+            platafroma_grupo.add(plataforma)
+            #reiniciar musica 
+            musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
+            pygame.mixer.music.play(-1)
 
     for event in pygame.event.get(): # sair do jogo
         if event.type == pygame.QUIT:
