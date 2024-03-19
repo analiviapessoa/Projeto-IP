@@ -228,7 +228,7 @@ while loop:
 
     #se a sapinha cair      
     else:
-        tela.fill(azul_claro)
+        tela.blit(background_imagem, (0,0))
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
