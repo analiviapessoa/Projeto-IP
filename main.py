@@ -19,6 +19,15 @@ pygame.mixer.music.play(-1,1.5)
 morte = pygame.mixer.Sound('morte.mp3')
 upgrade = pygame.mixer.Sound('upgrade.mp3')
 
+#imagens
+sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
+background_imagem = pygame.image.load('ceu.png') # imagem do background
+background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
+plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
+mosca_imagem = pygame.image.load('fly.png') # imagem da mosca
+sal_imagem = pygame.image.load('sal.png') # imagem do sal
+tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
+
 #frame
 clock = pygame.time.Clock()
 FPS = 60
@@ -41,21 +50,6 @@ azul_claro = (80, 200, 230)
 #fontes
 fonte1 = pygame.font.SysFont(None, 28)
 
-#imagens
-sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
-background_imagem = pygame.image.load('ceu.png') # imagem do background
-background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
-plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
-mosca_imagem = pygame.image.load('mosca.png')
-#tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
-
-#checar recorde
-if os.path.exists('placar.txt'):
-    with open('placar.txt','r') as file:
-        recorde = int(file.read())    
-else:
-    recorde = 0
-
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
     imagem = fonte.render(texto, True, cor_texto)
@@ -70,6 +64,13 @@ def desenhar_painel():
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
+
+#checar recorde
+if os.path.exists('placar.txt'):
+    with open('placar.txt','r') as file:
+        recorde = int(file.read())    
+else:
+    recorde = 0
 
 # jogador (sapa)
 class Jogador():
