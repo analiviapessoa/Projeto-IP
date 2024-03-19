@@ -41,8 +41,9 @@ rolagem = 0
 background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
-contador_vitoria_regia = 0
-pos_icone_vitoria_regia = (janela_largura - 150, 7)
+contador_mosca = 0
+pos_icone_mosca = (janela_largura - 150, 7)
+
 
 # cores
 branco = (255, 255, 255)
@@ -63,9 +64,9 @@ def desenhar_painel():
     pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
     escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
     # Exibir contador de vitórias da vitória régia
-    escrever_texto (': ' + str(contador_vitoria_regia), fonte1, azul, janela_largura - 120, 10)
+    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 120, 10)
     # Exibir ícone da vitória régia
-    tela.blit(pygame.transform.scale(vitoriaregia_imagem, (20, 20)), pos_icone_vitoria_regia)
+    tela.blit(pygame.transform.scale(mosca_imagem, (20, 20)), pos_icone_mosca)
 
 
 
@@ -99,6 +100,20 @@ class Vitoriaregia(pygame.sprite.Sprite):
         if self.rect.top > janela_altura:
             self.kill()
 
+class Mosca(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(mosca_imagem, (30, 30))  
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def update(self, rolagem):
+        self.rect.y += rolagem
+
+        if self.rect.top > janela_altura:
+            self.kill()  
+
+
 # jogador (sapa)
 class Jogador():
     def __init__(self, x, y):
@@ -113,6 +128,9 @@ class Jogador():
 
     def ativar_poder(self) :
         self.poder_ativo = True
+        if self.poder_ativo :
+            self. gravidade = 0.4 
+            FPS = 100
 
     def desativar_poder(self) :
         self.poder_ativo = False
@@ -202,6 +220,8 @@ class Plataforma(pygame.sprite.Sprite):
 
 platafroma_grupo = pygame.sprite.Group()
 vitoriaregia_grupo = pygame.sprite.Group()
+mosca_grupo = pygame.sprite.Group()
+
 
 sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
 
@@ -245,7 +265,7 @@ while loop:
         platafroma_grupo.update(rolagem)
 
         #gerar vitória-régia
-        if len(vitoriaregia_grupo) == 0 and placar > 1000:
+        if len(vitoriaregia_grupo) == 0 and placar > 5000:
             vitoriaregia = Vitoriaregia(plataforma_x, plataforma_y)
             vitoriaregia_grupo.add(vitoriaregia)
 
@@ -256,8 +276,28 @@ while loop:
             if pygame.sprite.collide_rect(sapa, vitoriaregia):
                 vitoriaregia.kill()  # Remove a vitória régia
                 upgrade.play()  # Toca o som de upgrade
-                contador_vitoria_regia += 1
-        
+                
+    
+        if len(mosca_grupo) == 0 and placar > 1000: 
+            mosca = Mosca(plataforma_x, plataforma_y)
+            mosca_grupo.add(mosca)
+            
+
+    # Atualizar mosca
+        mosca_grupo.update(rolagem)
+    # Desenhar mosca
+        mosca_grupo.draw(tela)
+
+
+        for mosca in mosca_grupo:
+            if pygame.sprite.collide_rect(sapa, mosca):
+                mosca.kill()
+                upgrade.play()  
+                contador_mosca += 1
+
+    # Outro código...
+
+
         #atualizar placar 
         if rolagem > 0:
             placar += rolagem
@@ -285,7 +325,7 @@ while loop:
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
-        contador_vitoria_regia = 0
+        contador_mosca = 0 
         
         #atualizar recorde
         if placar>recorde:
