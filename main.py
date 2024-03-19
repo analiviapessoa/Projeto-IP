@@ -31,7 +31,7 @@ tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela ini
 
 #frame
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 50
 
 #variáveis do jogo 
 rodar = 200
@@ -43,7 +43,6 @@ placar = 0
 efeito_fim_de_jogo = 0 #efeito tela fechando 
 contador_mosca = 0
 pos_icone_mosca = (janela_largura - 150, 7)
-
 
 # cores
 branco = (255, 255, 255)
@@ -67,9 +66,6 @@ def desenhar_painel():
     escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 120, 10)
     # Exibir ícone da vitória régia
     tela.blit(pygame.transform.scale(mosca_imagem, (20, 20)), pos_icone_mosca)
-
-
-
 # função para aparecer o background 
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
@@ -86,7 +82,7 @@ class Vitoriaregia(pygame.sprite.Sprite):
 
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(vitoriaregia_imagem, (50, 30))
+        self.image = pygame.transform.scale(vitoriaregia_imagem, (60, 50))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
@@ -124,7 +120,6 @@ class Jogador():
         self.rect.center = (x, y) # centralizar o retângulo na sapa
         self.vel_y = 0 # velocidade do eixo y
         self.poder_ativo = False
-
 
     def ativar_poder(self) :
         self.poder_ativo = True
@@ -176,6 +171,14 @@ class Jogador():
         self.rect.y += dy + rolagem
 
         return rolagem
+    
+    def ativar_poder(self):
+        self.poder_ativo = True
+        if self.poder_ativo:
+            self.vel_y = -30  # Impulso vertical alto
+
+    def desativar_poder(self):
+        self.poder_ativo = False
 
     def draw(self): # 
         tela.blit(self.image, (self.rect.x - 50, self.rect.y - 70))        
@@ -217,7 +220,7 @@ class Plataforma(pygame.sprite.Sprite):
          # excluir as plataformas que saem ta tela
         if self.rect.top > janela_altura:
             self.kill() 
-
+    
 platafroma_grupo = pygame.sprite.Group()
 vitoriaregia_grupo = pygame.sprite.Group()
 mosca_grupo = pygame.sprite.Group()
@@ -237,6 +240,7 @@ while loop:
     clock.tick(FPS)
 
     if game_over == False:
+        FPS += 0.01
         rolagem = sapa.move()
 
         #desenhar tela de fundo
@@ -265,7 +269,7 @@ while loop:
         platafroma_grupo.update(rolagem)
 
         #gerar vitória-régia
-        if len(vitoriaregia_grupo) == 0 and placar > 5000:
+        if len(vitoriaregia_grupo) == 0 and placar > 100:
             vitoriaregia = Vitoriaregia(plataforma_x, plataforma_y)
             vitoriaregia_grupo.add(vitoriaregia)
 
@@ -274,20 +278,19 @@ while loop:
 
         for vitoriaregia in vitoriaregia_grupo :
             if pygame.sprite.collide_rect(sapa, vitoriaregia):
-                vitoriaregia.kill()  # Remove a vitória régia
-                upgrade.play()  # Toca o som de upgrade
-                
+                    # acionar o boost quando toca na vitória régia
+                    if pygame.sprite.collide_rect(sapa, vitoriaregia):
+                        sapa.ativar_poder()  # Ativa o impulso ao colidir com a vitória-régia
+                        upgrade.play()  # Toca o som de upgrade
     
-        if len(mosca_grupo) == 0 and placar > 1000: 
+        if len(mosca_grupo) == 0 and placar > 100: 
             mosca = Mosca(plataforma_x, plataforma_y)
             mosca_grupo.add(mosca)
-            
 
     # Atualizar mosca
         mosca_grupo.update(rolagem)
     # Desenhar mosca
         mosca_grupo.draw(tela)
-
 
         for mosca in mosca_grupo:
             if pygame.sprite.collide_rect(sapa, mosca):
@@ -354,6 +357,9 @@ while loop:
             #reiniciar musica 
             musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
             pygame.mixer.music.play(-1)
+
+            #reiniciar velocidade do jogo 
+            FPS = 50 
 
     for event in pygame.event.get(): # sair do jogo
         if event.type == pygame.QUIT:
