@@ -25,7 +25,6 @@ background_imagem = pygame.image.load('ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
 plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
 mosca_imagem = pygame.image.load('fly.png') # imagem da mosca
-sal_imagem = pygame.image.load('sal.png') # imagem do sal
 tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
 
 #frame
@@ -274,5 +273,6 @@ while loop:
     pygame.display.update() 
 
 pygame.quit()
+
 
 
