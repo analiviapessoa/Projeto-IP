@@ -1,6 +1,7 @@
 #bibliotecas
 import pygame
 import random
+
 import constantes
 import os
  
@@ -18,6 +19,7 @@ musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
 pygame.mixer.music.play(-1,1.5)
 pygame.mixer.music.set_volume(1.5)
 
+
 morte = pygame.mixer.Sound('morte.mp3')
 morte.set_volume(0.5)
 
@@ -27,6 +29,8 @@ som_vitoriaregia.set_volume(0.5)
 som_mosca = pygame.mixer.Sound('som_mosca.mp3')
 som_mosca.set_volume(0.5)
 
+som_sal = pygame.mixer.Sound('sal.mp3')
+som_sal.set_volume(0.5)
 
 #imagens
 sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
@@ -38,6 +42,8 @@ vitoriaregia_imagem = pygame.image.load('vitoria_regia.png') # imagem da vitóri
 sal_imagem = pygame.image.load('sal.png') # imagem do sal
 tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
 tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
+vida_imagem = pygame.image.load('vida.webp').convert_alpha()
+
 
 #frame
 clock = pygame.time.Clock()
@@ -52,7 +58,10 @@ background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
 contador_mosca = 0
-pos_icone_mosca = (janela_largura - 150, 8)
+pos_icone_mosca = (janela_largura - 180, 8.5)
+contador_sal = 0
+vidas = 3
+pos_icone_vidas = (janela_largura - 90, 8)
 
 # cores
 branco = (255, 255, 255)
@@ -72,14 +81,23 @@ def desenhar_painel():
     pygame.draw.rect(tela, azul_claro, (0,0, janela_largura, 30))
     pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
     escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
-    # Exibir contador de vitórias da vitória régia
-    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 120, 10)
-    # Exibir ícone da vitória régia
+    #exibir contador de moscas
+    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 155, 10)
+    #exibir ícone da mosca
     tela.blit(pygame.transform.scale(mosca_imagem, (20, 20)), pos_icone_mosca)
+
+
 # função para aparecer o background 
+    
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
+
+def desenho_vidas() :
+    for i in range(vidas):
+        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vidas )
+
+
 
 #checar recorde
 if os.path.exists('placar.txt'):
@@ -118,6 +136,20 @@ class Mosca(pygame.sprite.Sprite):
 
         if self.rect.top > janela_altura:
             self.kill()  
+
+class Sal(pygame.sprite.Sprite) :
+    def __init__(self, x, y) :
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(sal_imagem, (35, 45))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+
+    def update(self, rolagem)  :
+        self.rect.y += rolagem
+
+        if self.rect.top > janela_altura :
+            self.kill()
+
 
 
 # jogador (sapa)
@@ -234,6 +266,7 @@ class Plataforma(pygame.sprite.Sprite):
 platafroma_grupo = pygame.sprite.Group()
 vitoriaregia_grupo = pygame.sprite.Group()
 mosca_grupo = pygame.sprite.Group()
+sal_grupo = pygame.sprite.Group()
 
 
 sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
@@ -319,8 +352,18 @@ while loop:
                 som_mosca.play()  
                 contador_mosca += 1
 
-    # Outro código...
+        if len(sal_grupo) == 0 and contador_mosca >= 5:
+            sal = Sal(plataforma_x, plataforma_y) 
+            sal_grupo.add(sal)   
 
+        sal_grupo.update(rolagem)
+        sal_grupo.draw(tela)  
+
+        for sal in sal_grupo :
+            if pygame.sprite.collide_rect(sapa, sal) :
+                sal.kill()
+                som_sal.play()
+                vidas -= 1
 
         #atualizar placar 
         if rolagem > 0:
@@ -338,6 +381,8 @@ while loop:
         #desenhar painel 
         desenhar_painel()
 
+        #desenho vida
+        desenho_vidas()
         #ver se a sapa caiu 
         if sapa.rect.top > janela_altura:
             game_over = True
