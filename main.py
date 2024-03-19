@@ -82,9 +82,9 @@ def desenhar_painel():
     pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
     escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
     #exibir contador de moscas
-    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 155, 10)
+    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 148, 10)
     #exibir ícone da mosca
-    tela.blit(pygame.transform.scale(mosca_imagem, (20, 20)), pos_icone_mosca)
+    tela.blit(pygame.transform.scale(mosca_imagem, (30, 20)), pos_icone_mosca)
 
 
 # função para aparecer o background 
