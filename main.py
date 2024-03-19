@@ -37,6 +37,7 @@ mosca_imagem = pygame.image.load('fly.png') # imagem da mosca
 vitoriaregia_imagem = pygame.image.load('vitoria_regia.png') # imagem da vitória-régia
 sal_imagem = pygame.image.load('sal.png') # imagem do sal
 tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
+tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
 
 #frame
 clock = pygame.time.Clock()
@@ -244,6 +245,17 @@ platafroma_grupo.add(plataforma)
 # loop do jogo
 game_over = False
 loop = True
+
+tela.blit(tela_inicial_imagem, (0, 0))  # desenho  da imagem na tela inicial
+pygame.display.update()  
+
+iniciou_jogo = False
+while not iniciou_jogo:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            iniciou_jogo = True  
+
+
 while loop:
 
     clock.tick(FPS)
