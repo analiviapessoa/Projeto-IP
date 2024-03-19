@@ -352,7 +352,7 @@ while loop:
                 som_mosca.play()  
                 contador_mosca += 1
 
-        if len(sal_grupo) == 0 and contador_mosca >= 5:
+        if len(sal_grupo) == 0 and contador_mosca >= 3:
             sal = Sal(plataforma_x, plataforma_y) 
             sal_grupo.add(sal)   
 
@@ -363,9 +363,7 @@ while loop:
             if pygame.sprite.collide_rect(sapa, sal) :
                 sal.kill()
                 som_sal.play()
-                vidas -= 1
 
-        #atualizar placar 
         if rolagem > 0:
             placar += rolagem
 
@@ -393,8 +391,10 @@ while loop:
         tela.blit(background_imagem, (0,0))
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
+        escrever_texto('moscas: ' + str(contador_mosca), fonte1, azul, 135, 220)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
         contador_mosca = 0 
+        pygame.mixer.music.set_volume(0)
         
         #atualizar recorde
         if placar>recorde:
@@ -422,7 +422,8 @@ while loop:
             
             #reiniciar musica 
             musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
-            pygame.mixer.music.play(-1)
+            pygame.mixer.music.play(-1,1.5)
+            pygame.mixer.music.set_volume(1.5)
 
             #reiniciar velocidade do jogo 
             FPS = 50 
