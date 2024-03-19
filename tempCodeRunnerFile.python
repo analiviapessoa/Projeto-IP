@@ -1,0 +1,637 @@
+import pygame as pg
+import random as rd
+import sys
+
+from pygame.sprite import Sprite, Group
+from pygame.image import load
+
+# janela
+DISPLAY_WIDTH = 1000
+DISPLAY_HEIGHT = 750
+DISPLAY_RESOLUTION = DISPLAY_WIDTH,DISPLAY_HEIGHT
+GAME_BG_IMG = 'game_sheet.png'
+
+FONTE_PATH = 'game/fonte/The Centurion .ttf'
+BRANCO = (255, 255, 255)
+
+# plataformas iniciais
+START_PLAT=[
+            [.2*DISPLAY_WIDTH, .8*DISPLAY_HEIGHT],
+            [.4*DISPLAY_WIDTH, .65*DISPLAY_HEIGHT],
+            [.4*DISPLAY_WIDTH, .45*DISPLAY_HEIGHT],
+            [.4*DISPLAY_WIDTH, .2*DISPLAY_HEIGHT],
+            [.1*DISPLAY_WIDTH, .05*DISPLAY_HEIGHT],
+            [.7*DISPLAY_WIDTH, .35*DISPLAY_HEIGHT],
+            [.4*DISPLAY_WIDTH, -70]
+            ]
+
+GRAVITY = 2
+# velocidade inicial no pulo
+JUMP_SIZE = 27
+# altura do chão
+GROUND = DISPLAY_HEIGHT
+
+# estados definidos juntos dos arquivos dos sprites 
+IDLE = 'Idle.png'
+JUMPING = 'Jump.png'
+FALLING = 'Fall.png'
+RUNNING = 'Run.png'
+DEAD = 'Death.png'
+SHEETS_PLAYER = [IDLE,RUNNING,FALLING,JUMPING,DEAD]
+# virado para:
+LEFT = 'left'
+RIGHT = 'right'
+
+img_dir = 'images/Hero Knight/'
+
+
+def load_sprites(sheet_list: list, img_dir: str):  
+    sprites = {RIGHT: {}, LEFT: {}}
+
+    for sheet_name in sheet_list:
+        sheet = load(img_dir+sheet_name).convert_alpha()
+        sqr_side = sheet.get_height()
+        frame_num = sheet.get_width()//sqr_side
+
+        for num in range(frame_num):
+            frame = sheet.subsurface((num*(sqr_side)+70, 60), (50, 55))     # cada frame tem aprox 50x55 (pxs)
+            image_right = pg.transform.scale(frame, (90,90))       # virado para direita (padrão do arquivo)
+            image_left = pg.transform.flip(image_right, flip_x=True, flip_y=False)   # virado para esquerda
+
+            if sheet_name not in sprites[RIGHT]:
+                sprites[RIGHT][sheet_name]=[image_right]  
+                sprites[LEFT][sheet_name]=[image_left]
+            else:
+                sprites[RIGHT][sheet_name].append(image_right)
+                sprites[LEFT][sheet_name].append(image_left)
+        
+    return sprites
+
+class Player(Sprite):
+    def __init__(self, sheets: list=SHEETS_PLAYER, pos: list=START_PLAT[0]):
+        super().__init__()  
+
+        self.vx = 13 # pxs/tick
+        self.vy = 0
+        self.direction = RIGHT
+        self.state = IDLE
+
+        self.sprites = load_sprites(sheets, img_dir)
+
+        # Define a animacao inicial (primeiro frame de Idle.png virado para a direita)
+        self.frame = 0  
+        inic_animation = self.sprites[self.direction][self.state]
+        self.image = inic_animation[self.frame]
+        self.last_update= pg.time.get_ticks()
+        
+        self.rect = self.image.get_rect(bottomleft=pos)
+        self.highest_y = 0
+
+        self.chao = 0
+        self.score = 0
+        self.botas = 0
+        
+    def draw(self, screen):
+        frame_ticks = 100   # Tempo de troca do frame em milissegundos
+
+        now = pg.time.get_ticks()
+
+        # Troca o frame se ja estiver na hora
+        if now - self.last_update >= frame_ticks:
+            self.last_update = now
+            self.frame += 1
+            
+            # Atualiza animacao atual
+            animation = self.sprites[self.direction][self.state]
+
+            if self.frame >= len(animation):
+                if self.state!=DEAD:
+                    self.frame = 0
+                else:
+                    self.frame = len(animation)-1
+
+            center = self.rect.center
+            # Atualiza imagem atual
+            self.image = animation[self.frame]
+
+            # Atualiza os detalhes de posicionamento
+            self.rect = self.image.get_rect()
+            self.rect.center = center
+
+        screen.blit(self.image, self.rect)
+
+    def jump(self):
+        if self.state in (IDLE,RUNNING):
+            self.vy -= JUMP_SIZE 
+            self.state = JUMPING
+            
+    def double_jump(self):
+        if self.state in (IDLE,RUNNING) and self.botas > 0:
+            self.vy -= 1.5*JUMP_SIZE 
+            self.state = JUMPING
+            self.botas = self.botas - 1
+
+    def get_input(self):
+        keys = pg.key.get_pressed()
+
+        if keys[pg.K_a]:
+            self.direction = LEFT
+            self.rect.x -= self.vx 
+
+        if keys[pg.K_d]:
+            self.direction = RIGHT
+            self.rect.x += self.vx  
+
+        if keys[pg.K_SPACE]: 
+            self.jump()
+        if keys[pg.K_e]: 
+            self.double_jump()
+        
+        return keys
+    
+    def update(self,plat_group):
+        keys = self.get_input() 
+
+        # Eixo X
+        # Se chegar em uma extremidade da tela -> vai para a extremidade oposta 
+        if not -self.rect.width < self.rect.x < DISPLAY_WIDTH:
+            self.rect.x = DISPLAY_WIDTH if self.rect.x < 0 else 0
+        
+        # Eixo y
+        if self.state!=FALLING:
+            self.highest_y=self.rect.bottom
+
+        self.vy += GRAVITY
+        self.rect.y += self.vy
+        
+        if self.vy > 0:
+            self.state = FALLING
+
+            collisions = pg.sprite.spritecollide(self, plat_group, False)
+            for platform in collisions:
+                if self.highest_y <= platform.rect.top:
+                    self.rect.bottom = platform.rect.top  # atualiza a altura no mapa
+                    self.highest_y = self.rect.bottom   
+                    self.vy = 0 
+
+                    if keys[pg.K_a] or keys[pg.K_d]:
+                        self.state = RUNNING
+                    else:
+                        self.state = IDLE 
+
+        # Colisao com o chao (da pra substituir por alguma outra base se quiser)
+        if self.rect.bottom > GROUND:
+            self.rect.bottom = GROUND
+            self.vy = 0
+            self.state=DEAD
+
+        if self.rect.top < 0:
+            self.rect.top = 0
+
+class Platform(Sprite):
+    group = Group()
+
+    def __init__(self, img, pos: list=[.4*DISPLAY_WIDTH,DISPLAY_HEIGHT-100]):
+        
+        super().__init__()
+        image = load(img)
+        self.image = pg.transform.scale(image, (150, 30))
+        self.rect = self.image.get_rect()
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+
+        # itens da plataforma
+        self.moedas = Group()
+        self.relogios = Group()
+        self.jumpb = Group()
+
+    def plat_coin(self):    # aparecimento de moedas em plataformas
+
+        for _ in range(rd.randint(1,2)):
+            moeda = Moeda('images/moeda.png')
+            moeda.rect.x = rd.randrange(self.rect.x,self.rect.x+self.rect.width)
+            moeda.rect.y = self.rect.y-moeda.rect.height-10
+            Moeda.group.add(moeda)
+            self.moedas.add(moeda)
+        
+    def plat_clock(self):   # aparecimento de tempo extra em plataformas
+
+        relogio = Relogio('images/relogio.png')
+        relogio.rect.x = rd.randrange(self.rect.x,self.rect.x+self.rect.width)
+        relogio.rect.y = self.rect.y-relogio.rect.height-10
+        Relogio.group.add(relogio)
+        self.relogios.add(relogio)
+
+    def plat_jumpb(self):   # aparecimento de pulo duplo em plataformas
+
+        for _ in range(rd.randint(1,3)):
+            pulo = JumpBoost('images/bota.png')
+            pulo.rect.x = rd.randrange(self.rect.x,self.rect.x+self.rect.width)
+            pulo.rect.y = self.rect.y-pulo.rect.height-10
+            JumpBoost.group.add(pulo)
+            self.jumpb.add(pulo)
+
+    def repos_plat(self):  # metodo recursivo pra reposicionar plataformas que se sobrepoem
+
+        if self in self.group:
+            self.remove(self.group)
+
+        collisions = pg.sprite.spritecollideany(self, self.group)
+        if collisions is not None:
+            self.rect.y = rd.randint(-30,-10) 
+            self.rect.x = rd.randint(20,DISPLAY_WIDTH-self.rect.width-30)  
+            self.repos_plat()
+            
+        self.add(self.group)
+
+    def update(self, player):   # remove ou acrescenta plataformas 
+        
+        if player.state!=FALLING and player.rect.y < .4*DISPLAY_HEIGHT:
+            self.rect.y -= player.vy
+        
+        if self.rect.y > DISPLAY_HEIGHT:    # Saiu da tela
+            self.rect.y = rd.randint(-30,-10) 
+            self.rect.x = rd.randint(20,DISPLAY_WIDTH-self.rect.width-30)  
+            self.repos_plat()   # checa se colidiu e reposiciona caso necessario
+
+        # geradores de itens
+        if rd.randint(0,100)<1 and self.rect.y<0 and len(self.jumpb)<4: # botas
+            self.plat_jumpb()
+        if rd.randint(0,100)<1 and self.rect.y<0 and len(self.relogios)<1:  # relogios
+            self.plat_clock()
+        if rd.randint(0,10)<1 and self.rect.y<0 and len(self.moedas)<3:  # moedas
+            self.plat_coin()
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+ 
+pg.init()
+
+# Configuração da tela
+SCREEN = pg.display.set_mode(DISPLAY_RESOLUTION)
+pg.display.set_caption('Menu')
+
+img_dir = 'images/background/background_menu/'
+def load_sprites(dir: str):  # dim = 1000x750 
+    bg_images = []
+    for i in range(1,4):
+        image = load(dir+f'layer_{i}.png').convert_alpha()
+        width = image.get_width()
+        ratio = DISPLAY_WIDTH/width
+        height = image.get_height()
+        image = pg.transform.scale(image, (1000, int(height*ratio)))
+        bg_images.append(image)
+
+    # reajuste da segunda layer
+    layer_2 = pg.transform.scale(bg_images[1], (1000,500))
+    bg_images[1] = layer_2
+
+    return bg_images
+
+
+class Menu(Sprite):
+    def __init__(self, screen: pg.surface.Surface):
+        super().__init__()
+        
+        self.screen = screen
+        self.sprites = load_sprites(img_dir)
+        self.last_update = pg.time.get_ticks()
+        
+        self.scroll = 0
+
+        self.gamescreen = Level(screen)
+
+    def draw(self):
+        for i, img in enumerate(self.sprites):
+            if i!=2:
+                self.screen.blit(img, (0,i*250))
+
+        width = DISPLAY_WIDTH
+        for i in range(3):
+            self.screen.blit(self.sprites[2],(i*width + self.scroll, 657))
+            
+        self.scroll -= .8
+        if abs(self.scroll)>width:
+            self.scroll=0
+
+    def loop(self):
+        opcoes = ["Iniciar", "Sair"]
+        selecionado = 0
+        clock = pg.time.Clock()
+
+        while True:
+            clock.tick(60)
+            self.draw()
+
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_RETURN or event.key == pg.K_SPACE:
+                        if selecionado == 0:
+                            try:
+                                self.gamescreen.run()
+                            finally:
+                                pass
+                        elif selecionado == 1:
+                            pg.quit()
+                            sys.exit()
+                    elif event.key == pg.K_UP or event.key == pg.K_w:
+                        selecionado = (selecionado - 1) % len(opcoes)
+                    elif event.key == pg.K_DOWN or event.key == pg.K_s:
+                        selecionado = (selecionado + 1) % len(opcoes)
+            
+            # Criar texto para o menu
+            fonte_titulo = pg.font.Font(FONTE_PATH, 60)
+
+            texto_tiulo = fonte_titulo.render('Medieval Jumper', True, BRANCO)
+            titulo_rect = texto_tiulo.get_rect()
+            titulo_rect.center = (DISPLAY_WIDTH//2, 200)
+            self.screen.blit(texto_tiulo,titulo_rect)
+
+            fonte = pg.font.Font(FONTE_PATH, 45)
+            for i, opcao in enumerate(opcoes):
+                cor = BRANCO if i == selecionado else (100, 100, 100)
+                texto = fonte.render(opcao, True, cor)
+                texto_rect = texto.get_rect()
+                texto_rect.center = (DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2 + i * 50)
+                
+                # Desenhar o texto na tela
+                self.screen.blit(texto, texto_rect)
+            
+            # Atualizar a tela
+            pg.display.update()
+
+
+main = Menu(SCREEN)
+try:
+    main.loop()
+finally:
+    pg.quit()
+
+img_dir = 'images/background/'
+
+def load_sprites(dir: str, sheet: str):  # dim = 1000x750 
+    sprites = []
+    bg = load(dir+sheet).convert_alpha()
+    frames = bg.get_width()//1000
+
+    for num in range(frames):
+        image = bg.subsurface((num*1000,0), (1000,750))
+        sprites.append(image)
+
+    return sprites
+
+class Level(Sprite):
+    def __init__(self, screen: pg.surface.Surface):
+        super().__init__()
+
+        self.screen = screen
+        self.sprites = load_sprites(img_dir,GAME_BG_IMG)
+        self.frame = 0
+        self.last_update = pg.time.get_ticks()
+        self.image = self.sprites[self.frame]
+        self.rect = self.image.get_rect()
+
+        self.group_sprites = Group()
+        self.player = Player()
+
+    def update(self):    # Atualiza infos do display
+        timer_rect = Relogio.contador.rect
+
+        moeda_imagem = pg.image.load('images/moeda.png')
+        moeda_imagem = pg.transform.scale(moeda_imagem, (35, 35))
+        moeda_rect = moeda_imagem.get_rect()
+
+        botas_imagem = pg.image.load('images/bota.png')
+        botas_imagem = pg.transform.scale(botas_imagem, (38, 38))
+        bota_rect = botas_imagem.get_rect()
+        
+        font = pg.font.Font(None, 36)
+        score_text = font.render(str(self.player.score), True, (255, 255, 255))
+        botas_text = font.render(str(self.player.botas), True, (255, 255, 255))
+
+        moeda_rect.bottomleft = (timer_rect.x+20, timer_rect.y - 15)
+        bota_rect.bottomleft = (moeda_rect.x, moeda_rect.y - 15)
+
+        self.screen.blit(moeda_imagem, moeda_rect)
+        self.screen.blit(botas_imagem, bota_rect)
+
+        score_rect = score_text.get_rect(topright=(moeda_rect.x-10, moeda_rect.y+5))
+        botas_rect = botas_text.get_rect(topright=(bota_rect.x-10, bota_rect.y+5))
+        
+        self.screen.blit(score_text, score_rect)
+        self.screen.blit(botas_text, botas_rect)
+    
+    def draw(self):
+        # ANIMACAO 
+        frame_ticks = 100   # Tempo de troca do frame em milissegundos
+        now = pg.time.get_ticks()
+
+        # Troca o frame se ja estiver na hora
+        if now - self.last_update >= frame_ticks:
+            self.last_update = now
+            self.frame += 1
+
+            if self.frame >= len(self.sprites):
+                self.frame = 0 if self.player.state!=DEAD else len(self.sprites)-1
+
+            center = self.rect.center
+
+            # Atualiza imagem atual
+            self.image = self.sprites[self.frame]
+            
+            # Atualiza os detalhes de posicionamento
+            self.rect = self.image.get_rect()
+            self.rect.center = center
+
+        self.screen.blit(self.image, (0,0))
+
+    def gameover(self):
+        msg1 = 'Game Over'
+        msg2 = 'Aperte  ESC  para voltar ao menu'
+        fonte = pg.font.Font(FONTE_PATH,45)
+
+        texto1 = fonte.render(msg1, True, BRANCO)
+        texto2 = fonte.render(msg2, True, BRANCO)
+        txt1_rect = texto1.get_rect(center=(DISPLAY_WIDTH//2, 200))
+        txt2_rect = texto2.get_rect(center=(DISPLAY_WIDTH//2, 250))
+        
+        self.screen.blit(texto1, txt1_rect)
+        self.screen.blit(texto2, txt2_rect)
+            
+    def reset(self):
+        for group_type in self.group_sprites:
+            for sprite in group_type.group:
+                sprite.kill()
+        self.player = Player()
+        Relogio.contador = Timer()
+
+    def run(self):
+        clock = pg.time.Clock()
+
+        for coord in START_PLAT:
+            Platform.group.add(Platform('images/plataforma.jpg', coord))
+
+        pg.display.set_caption('Medieval Jumper')
+        running = True
+        while running:
+            clock.tick(60)
+
+            self.draw()
+            self.group_sprites.add(Platform.group, Moeda.group, JumpBoost.group, Relogio.group)
+
+            # Eventos
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    running = False
+                    sys.exit()
+                if event.type == pg.KEYDOWN and pg.key.get_pressed()[pg.K_ESCAPE]: 
+                    # volta para o menu apertando ESC
+                    running = False
+                    self.reset()
+
+            # Quando o tempo acabar volta para o menu
+            if Relogio.contador.time <= 0:
+                self.player.state=DEAD
+                self.gameover()
+
+            # Updates
+            if self.player.state!=DEAD:
+                self.player.update(Platform.group)  
+                self.group_sprites.update(self.player)
+                Relogio.contador.update()
+            else:
+                self.gameover()
+
+            self.update()    
+            Relogio.contador.draw(self.screen)
+            
+            # Display atualizado
+            self.player.draw(self.screen)
+            self.group_sprites.draw(self.screen)
+            
+            pg.display.flip()
+
+pg.font.init()
+
+class Timer(Sprite):
+    def __init__(self, bottomright: tuple=DISPLAY_RESOLUTION):
+        super().__init__()
+
+        image = load('images/relogio.png')
+        self.image = pg.transform.scale(image, (64,64))
+        self.rect = self.image.get_rect()
+        self.rect.bottomright = bottomright
+        
+        self.color = (255,255,255)
+
+        self.time = 60
+        self.bonus = False
+        self.count = pg.time.get_ticks()/1000
+
+        # sempre inicia com 1 min
+        min, seg = 1, 0
+        self.fonte = pg.font.Font(None, 40)
+        self.fonte.set_bold(True)
+        self.text = self.fonte.render(f'{min}:{seg}0', True, self.color)
+    
+    def update(self):
+        now = pg.time.get_ticks()/1000
+        if now - self.count >= 1:
+            self.time -= 1
+            self.count = now
+            min = self.time//60
+            seg = self.time%60
+
+            if seg < 10: seg = f'0{seg}'
+
+            if self.bonus:
+                self.text = self.fonte.render(f'+10s  {min}:{seg}', True, self.color)
+                self.bonus = False
+            else:
+                self.text = self.fonte.render(f'{min}:{seg}', True, self.color)
+
+    def draw(self,screen):
+        # generaliza pra quando o texto atualiza (o bottomright sempre se mantem o mesmo)
+        text_rect = self.text.get_rect()
+        text_rect.bottomright = (DISPLAY_WIDTH-self.rect.width,DISPLAY_HEIGHT)
+
+        screen.blit(self.text,text_rect)
+        screen.blit(self.image, self.rect)
+
+class Relogio(Sprite):
+    group = Group()
+    contador = Timer()
+
+    def __init__(self, img, tempo_extra: int=10):
+        super().__init__()
+        image = load(img)
+        self.image = pg.transform.scale(image, (30, 30))
+        self.rect = self.image.get_rect()
+
+        self.t_extra = tempo_extra 
+
+    def coletar(self):
+        self.contador.bonus = True
+        self.contador.time += self.t_extra
+        self.kill()
+
+    def update(self, player):
+        if player.state!=FALLING and player.rect.y < .4*DISPLAY_HEIGHT:
+            self.rect.y -= player.vy
+
+        if self.rect.y>=GROUND:
+            self.kill()
+
+        for relogio in self.group:
+            if player.rect.colliderect(relogio.rect):
+                relogio.coletar()
+
+    def draw(self,screen):
+        screen.blit(self.image, self.rect)
+
+class Moeda(Sprite):
+    group = Group()
+
+    def __init__(self, img):
+        super().__init__()
+        image = load(img)
+        self.image = pg.transform.scale(image, (30, 30))
+        self.rect = self.image.get_rect()
+        
+    def update(self, player):
+        if player.state!=FALLING and player.rect.y < .4*DISPLAY_HEIGHT:
+            self.rect.y -= player.vy
+
+        if self.rect.y>=GROUND: 
+            self.kill()
+
+        hits = pg.sprite.spritecollide(player, Moeda.group, True)
+        player.score += len(hits)
+
+    def draw(self,screen):
+        screen.blit(self.image, self.rect)
+
+class JumpBoost(Sprite):
+    group = Group()
+
+    def __init__(self, img):
+        super().__init__()
+        image = load(img)
+        self.image = pg.transform.scale(image, (30, 30))
+        self.rect = self.image.get_rect()
+    
+    def update(self, player):
+        if player.state!=FALLING and player.rect.y < .4*DISPLAY_HEIGHT:
+            self.rect.y -= player.vy
+        
+        if self.rect.y>=GROUND: 
+            self.kill()
+
+        hits = pg.sprite.spritecollide(player, JumpBoost.group, True)
+        player.botas += len(hits)
+        
+    def draw(self,screen):
+        screen.blit(self.image, self.rect)

@@ -11,9 +11,13 @@ pygame.init()
 janela_largura = 400
 janela_altura =  600
 tela = pygame.display.set_mode((janela_largura, janela_altura)) # criar uma janela
-pygame.display.set_caption('doodle jump') # nome do jogo
+pygame.display.set_caption('flying froggy') # nome do jogo
+
+#músicas e efeitos sonoros
 musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
-pygame.mixer.music.play(-1)
+pygame.mixer.music.play(-1,1.5)
+morte = pygame.mixer.Sound('morte.mp3')
+upgrade = pygame.mixer.Sound('upgrade.mp3')
 
 #frame
 clock = pygame.time.Clock()
@@ -42,7 +46,8 @@ sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
 background_imagem = pygame.image.load('ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
 plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
-tela_inicial_imagem = pygame.image.load('telainicial.png') # imagem da tela inicial
+mosca_imagem = pygame.image.load('mosca.png')
+#tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
 
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
@@ -58,6 +63,13 @@ def desenhar_painel():
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
+
+#checar recorde
+if os.path.exists('placar.txt'):
+    with open('placar.txt','r') as file:
+        recorde = int(file.read())    
+else:
+    recorde = 0
 
 # jogador (sapa)
 class Jogador():
@@ -111,15 +123,19 @@ class Jogador():
         return rolagem
 
     def draw(self): # 
-        tela.blit(self.image, (self.rect.x - 50, self.rect.y - 70))
-        
+        tela.blit(self.image, (self.rect.x - 50, self.rect.y - 70))        
 
 #platafroma
 class Plataforma(pygame.sprite.Sprite): 
 
-    def __init__(self, x, y, largura):
+    def __init__(self, x, y, largura,move):
+
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(plataforma_imagem, (largura, 50)) # escala da plataforma
+        self.mover = move
+        self.contador_movimentos = random.randint(0,50)
+        self.direcao = random.choice([-1,1])
+        self.velocidade = random.randint(1,2)
         self.largura = largura # largura do retângulo
         self.altura = 30 # altura do retângulo
         self.rect = pygame.Rect(0, 0, self.largura, self.altura) # criar um retângulo 
@@ -129,18 +145,30 @@ class Plataforma(pygame.sprite.Sprite):
         self.rect.y = y
 
     def update(self, rolagem):
-        self.rect.y += rolagem # update a posição das plataformas enquanto a tela rola
 
+        #mover a plataforma
+        if self.mover == True:
+            self.contador_movimentos += 1
+            self.rect.x += self.direcao * self.velocidade
+        
+        #mudar a direção da plataforma
+        if self.contador_movimentos>=100 or self.rect.left < 0 or self.rect.right > janela_largura:
+            self.direcao *= -1
+            self.contador_movimentos = 0
+
+        # update a posição das plataformas enquanto a tela rola
+        self.rect.y += rolagem 
+
+         # excluir as plataformas que saem ta tela
         if self.rect.top > janela_altura:
-            self.kill() # excluir as plataformas que saem ta tela
-
+            self.kill() 
 
 platafroma_grupo = pygame.sprite.Group()
 
 sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
 
 # plataforma inicial
-plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50)
+plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50, False)
 platafroma_grupo.add(plataforma)
 
 # loop do jogo
@@ -153,16 +181,26 @@ while loop:
     if game_over == False:
         rolagem = sapa.move()
 
+        #desenhar tela de fundo
         background_rolagem += rolagem
         if background_rolagem >+ 600:
             background_rolagem = 0 # resetar a posição dos dois backgrounds, para ser infinito
         draw_background(background_rolagem) # fazer com que o background apareça na tela
 
+        #gerar plataforma
         if len(platafroma_grupo) < maximo_plataformas:
             plataforma_largura = random.randint(60, 100) # largura das plataformas (entre 60 e 100)
             plataforma_x = random.randint(0, janela_largura - plataforma_largura) # posição no eixo x
             plataforma_y = plataforma.rect.y - random.randint(100, 190) # posição no eixo y
-            plataforma = Plataforma(plataforma_x, plataforma_y, plataforma_largura) # gerar a plataforma
+            
+            #plataformas que se movem
+            plataforma_tipo = random.randint(1,2)
+            if plataforma_tipo==1 and placar>500:
+                plataforma_movendo = True
+            else:
+                plataforma_movendo = False
+            
+            plataforma = Plataforma(plataforma_x, plataforma_y, plataforma_largura,plataforma_movendo) # gerar a plataforma
             platafroma_grupo.add(plataforma)
 
         #atualizar plataforma
@@ -172,7 +210,12 @@ while loop:
         if rolagem > 0:
             placar += rolagem
 
-        platafroma_grupo.draw(tela) # adicionar as plataformas à tela
+        #desenhar linha abaixo do recorde
+            pygame.draw.line(tela, preto, (0, placar - recorde + rolagem), (janela_largura, placar - recorde + rolagem), 3)
+            escrever_texto('RECORDE', fonte1, preto, janela_largura - 130, placar - recorde + rolagem)
+
+        # adicionar as plataformas à tela
+        platafroma_grupo.draw(tela) 
         sapa.draw()
 
         #desenhar painel 
@@ -181,6 +224,8 @@ while loop:
         #ver se a sapa caiu 
         if sapa.rect.top > janela_altura:
             game_over = True
+            morte.play()
+
     #se a sapinha cair      
     else:
         tela.fill(azul_claro)
@@ -188,6 +233,12 @@ while loop:
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
         
+        #atualizar recorde
+        if placar>recorde:
+            recorde=placar
+            with open ('placar.txt','w') as file:
+                file.write(str(recorde))
+
         key = pygame.key.get_pressed() #para identificar que a barra de espaço foi precionada
         if key[pygame.K_SPACE]:
             #reiniciar as variaveis para recomeçar o jogo 
@@ -207,8 +258,15 @@ while loop:
 
     for event in pygame.event.get(): # sair do jogo
         if event.type == pygame.QUIT:
+            #atualizar recorde
+            if placar>recorde:
+                recorde=placar
+                with open ('placar.txt','w') as file:
+                    file.write(str(recorde))
             loop = False
 
     pygame.display.update() 
 
 pygame.quit()
+
+
