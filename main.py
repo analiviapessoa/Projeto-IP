@@ -25,6 +25,8 @@ background_imagem = pygame.image.load('ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
 plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
 mosca_imagem = pygame.image.load('fly.png') # imagem da mosca
+vitoriaregia_imagem = pygame.image.load('vitoria_regia.png') # imagem da vitória-régia
+sal_imagem = pygame.image.load('sal.png') # imagem do sal
 tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
 
 #frame
@@ -71,6 +73,24 @@ if os.path.exists('placar.txt'):
 else:
     recorde = 0
 
+class Vitoriaregia(pygame.sprite.Sprite):
+
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(vitoriaregia_imagem, (50, 30))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, rolagem, janela_altura):
+
+        self.rect.y += rolagem 
+
+        if self.rect.top > janela_altura:
+            self.kill()
+
 # jogador (sapa)
 class Jogador():
     def __init__(self, x, y):
@@ -105,7 +125,7 @@ class Jogador():
 
         # colisão com as plataformas
         for plataforma in platafroma_grupo:
-            if plataforma.rect.colliderect(self.rect. x, self.rect.y + dy, self.largura, self. altura):
+            if plataforma.rect.colliderect(self.rect.x, self.rect.y + dy, self.largura, self.altura):
                 if self.rect.bottom < plataforma.rect.centery:
                     if self.vel_y > 0:
                         self.rect.bottom = plataforma.rect.top # se o fundo da sapa tocar no topo da plataforma
@@ -128,7 +148,7 @@ class Jogador():
 #platafroma
 class Plataforma(pygame.sprite.Sprite): 
 
-    def __init__(self, x, y, largura,move):
+    def __init__(self, x, y, largura, move):
 
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(plataforma_imagem, (largura, 50)) # escala da plataforma
@@ -139,7 +159,7 @@ class Plataforma(pygame.sprite.Sprite):
         self.largura = largura # largura do retângulo
         self.altura = 30 # altura do retângulo
         self.rect = pygame.Rect(0, 0, self.largura, self.altura) # criar um retângulo 
-        self.rect.center = (x, y) # centralizar o retângulo na sapa
+        self.rect.center = (x, y) # centralizar o retângulo
         
         self.rect.x = x
         self.rect.y = y
@@ -164,6 +184,7 @@ class Plataforma(pygame.sprite.Sprite):
             self.kill() 
 
 platafroma_grupo = pygame.sprite.Group()
+vitoriaregia_grupo = pygame.sprite.Group()
 
 sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
 
@@ -195,7 +216,7 @@ while loop:
             
             #plataformas que se movem
             plataforma_tipo = random.randint(1,2)
-            if plataforma_tipo==1 and placar>500:
+            if plataforma_tipo==1 and placar > 3000:
                 plataforma_movendo = True
             else:
                 plataforma_movendo = False
@@ -205,6 +226,14 @@ while loop:
 
         #atualizar plataforma
         platafroma_grupo.update(rolagem)
+
+        #gerar vitória-régia
+        if len(vitoriaregia_grupo) == 0 and placar > 5000:
+            vitoriaregia = Vitoriaregia(plataforma_x, plataforma_y)
+            vitoriaregia_grupo.add(vitoriaregia)
+
+        #atualizar vitória-régia
+        vitoriaregia_grupo.update(rolagem, janela_altura)
         
         #atualizar placar 
         if rolagem > 0:
@@ -216,6 +245,7 @@ while loop:
 
         # adicionar as plataformas à tela
         platafroma_grupo.draw(tela) 
+        vitoriaregia_grupo.draw(tela)
         sapa.draw()
 
         #desenhar painel 
@@ -273,6 +303,3 @@ while loop:
     pygame.display.update() 
 
 pygame.quit()
-
-
-
