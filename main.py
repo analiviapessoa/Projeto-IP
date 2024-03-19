@@ -41,6 +41,8 @@ rolagem = 0
 background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
+contador_vitoria_regia = 0
+pos_icone_vitoria_regia = (janela_largura - 150, 7)
 
 # cores
 branco = (255, 255, 255)
@@ -60,6 +62,12 @@ def desenhar_painel():
     pygame.draw.rect(tela, azul_claro, (0,0, janela_largura, 30))
     pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
     escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
+    # Exibir contador de vitórias da vitória régia
+    escrever_texto (': ' + str(contador_vitoria_regia), fonte1, azul, janela_largura - 120, 10)
+    # Exibir ícone da vitória régia
+    tela.blit(pygame.transform.scale(vitoriaregia_imagem, (20, 20)), pos_icone_vitoria_regia)
+
+
 
 # função para aparecer o background 
 def draw_background(rolagem):
@@ -100,6 +108,15 @@ class Jogador():
         self.rect = pygame.Rect(0, 0, self.largura, self.altura) # criar um retângulo 
         self.rect.center = (x, y) # centralizar o retângulo na sapa
         self.vel_y = 0 # velocidade do eixo y
+        self.poder_ativo = False
+
+
+    def ativar_poder(self) :
+        self.poder_ativo = True
+
+    def desativar_poder(self) :
+        self.poder_ativo = False
+
 
     def move(self): # movimento da sapa
         # resetar variáveis 
@@ -228,12 +245,18 @@ while loop:
         platafroma_grupo.update(rolagem)
 
         #gerar vitória-régia
-        if len(vitoriaregia_grupo) == 0 and placar > 5000:
+        if len(vitoriaregia_grupo) == 0 and placar > 1000:
             vitoriaregia = Vitoriaregia(plataforma_x, plataforma_y)
             vitoriaregia_grupo.add(vitoriaregia)
 
         #atualizar vitória-régia
         vitoriaregia_grupo.update(rolagem, janela_altura)
+
+        for vitoriaregia in vitoriaregia_grupo :
+            if pygame.sprite.collide_rect(sapa, vitoriaregia):
+                vitoriaregia.kill()  # Remove a vitória régia
+                upgrade.play()  # Toca o som de upgrade
+                contador_vitoria_regia += 1
         
         #atualizar placar 
         if rolagem > 0:
@@ -262,6 +285,7 @@ while loop:
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
+        contador_vitoria_regia = 0
         
         #atualizar recorde
         if placar>recorde:
