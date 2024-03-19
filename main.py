@@ -49,6 +49,13 @@ plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
 mosca_imagem = pygame.image.load('mosca.png')
 #tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
 
+#checar recorde
+if os.path.exists('placar.txt'):
+    with open('placar.txt','r') as file:
+        recorde = int(file.read())    
+else:
+    recorde = 0
+
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
     imagem = fonte.render(texto, True, cor_texto)
@@ -63,13 +70,6 @@ def desenhar_painel():
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
-
-#checar recorde
-if os.path.exists('placar.txt'):
-    with open('placar.txt','r') as file:
-        recorde = int(file.read())    
-else:
-    recorde = 0
 
 # jogador (sapa)
 class Jogador():
@@ -241,17 +241,22 @@ while loop:
 
         key = pygame.key.get_pressed() #para identificar que a barra de espaço foi precionada
         if key[pygame.K_SPACE]:
+            
             #reiniciar as variaveis para recomeçar o jogo 
             game_over = False
             placar = 0 
             rolagem = 0
+            
             #reposicionar a sapinha  
             sapa.rect.center = (janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
+            
             #resetar as plataformas
             platafroma_grupo.empty()
-            #crias a plataforma de início (de novo)
-            plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50)
+            
+            #cria a plataforma de início (de novo)
+            plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50, plataforma_movendo)
             platafroma_grupo.add(plataforma)
+            
             #reiniciar musica 
             musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
             pygame.mixer.music.play(-1)
