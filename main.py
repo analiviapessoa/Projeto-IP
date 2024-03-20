@@ -60,6 +60,7 @@ efeito_fim_de_jogo = 0 #efeito tela fechando
 contador_mosca = 0
 pos_icone_mosca = (janela_largura - 180, 8.5)
 contador_sal = 0
+contador_vr = 0
 vidas_restantes = 3
 pos_icone_vida1 = (janela_largura - 90, 8)
 pos_icone_vida2 = (janela_largura - 60, 8)
@@ -403,9 +404,11 @@ while loop:
     else:
         tela.blit(background_imagem, (0,0))
         escrever_texto('GAME OVER', fonte1, azul, 130, 200)
-        escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
-        escrever_texto('moscas: ' + str(contador_mosca), fonte1, azul, 135, 220)
-        escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
+        escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 135, 220)
+        escrever_texto('Moscas: ' + str(contador_mosca), fonte1, azul, 150, 250)
+        escrever_texto('Vitórias-Régias: ' + str(contador_vr), fonte1, azul, 120, 270)
+        escrever_texto('Saleiros: ' + str(contador_sal), fonte1, azul, 145, 290)
+        escrever_texto('Aperte espaço para tentar de novo', fonte1, azul, 25, 320)
         pygame.mixer.music.set_volume(0)
         contador_mosca = 0
         
