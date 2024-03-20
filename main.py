@@ -1,8 +1,6 @@
 #bibliotecas
 import pygame
 import random
-
-import constantes
 import os
  
 #iniciar
@@ -15,34 +13,34 @@ tela = pygame.display.set_mode((janela_largura, janela_altura)) # criar uma jane
 pygame.display.set_caption('flying froggy') # nome do jogo
 
 #músicas e efeitos sonoros
-musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
+musica_de_fundo = pygame.mixer.music.load('audios/sapo_nao_lava.mp3') #música de fundo
 pygame.mixer.music.play(-1,1.5)
 pygame.mixer.music.set_volume(1.5)
 
 
-morte = pygame.mixer.Sound('morte.mp3')
+morte = pygame.mixer.Sound('audios/morte.mp3')
 morte.set_volume(0.5)
 
-som_vitoriaregia = pygame.mixer.Sound('som_vr.mp3')
+som_vitoriaregia = pygame.mixer.Sound('audios/som_vr.mp3')
 som_vitoriaregia.set_volume(0.5)
 
-som_mosca = pygame.mixer.Sound('som_mosca.mp3')
+som_mosca = pygame.mixer.Sound('audios/som_mosca.mp3')
 som_mosca.set_volume(0.5)
 
-som_sal = pygame.mixer.Sound('sal.mp3')
+som_sal = pygame.mixer.Sound('audios/sal.mp3')
 som_sal.set_volume(0.5)
 
 #imagens
-sapa_imagem = pygame.image.load('sapa.png') # imagem da sapa
-background_imagem = pygame.image.load('ceu.png') # imagem do background
+sapa_imagem = pygame.image.load('imagens/sapa.png') # imagem da sapa
+background_imagem = pygame.image.load('imagens/ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
-plataforma_imagem = pygame.image.load('platform.png') # imagem da plataforma
-mosca_imagem = pygame.image.load('fly.png') # imagem da mosca
-vitoriaregia_imagem = pygame.image.load('vitoria_regia.png') # imagem da vitória-régia
-sal_imagem = pygame.image.load('sal.png') # imagem do sal
-tela_inicial_imagem = pygame.image.load('telainicial.jpeg') # imagem da tela inicial
+plataforma_imagem = pygame.image.load('imagens/platform.png') # imagem da plataforma
+mosca_imagem = pygame.image.load('imagens/fly.png') # imagem da mosca
+vitoriaregia_imagem = pygame.image.load('imagens/vitoria_regia.png') # imagem da vitória-régia
+sal_imagem = pygame.image.load('imagens/sal.png') # imagem do sal
+tela_inicial_imagem = pygame.image.load('imagens/telainicial.jpeg') # imagem da tela inicial
 tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
-vida_imagem = pygame.image.load('vida.webp').convert_alpha()
+vida_imagem = pygame.image.load('imagens/vida.webp').convert_alpha()
 
 
 #frame
@@ -444,7 +442,7 @@ while loop:
             platafroma_grupo.add(plataforma)
             
             #reiniciar musica 
-            musica_de_fundo = pygame.mixer.music.load('sapo_nao_lava.mp3') #música de fundo
+            musica_de_fundo = pygame.mixer.music.load('audios/sapo_nao_lava.mp3') #música de fundo
             pygame.mixer.music.play(-1,1.5)
             pygame.mixer.music.set_volume(1.5)
 
