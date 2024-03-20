@@ -347,12 +347,6 @@ while loop:
         mosca_grupo.update(rolagem, janela_altura)
         #desenhar mosca
         mosca_grupo.draw(tela)
-
-        for mosca in mosca_grupo:
-            if pygame.sprite.collide_rect(sapa, mosca): #verifica se a sapa colidiu com a mosca 
-                mosca.kill()  # Tira a mosca da tela
-                som_mosca.play()  # Toca a música da mosca
-                contador_mosca += 1 # Adiciona 1 ao contador de mosca
          
         if len(sal_grupo) == 0 and contador_mosca >= 1:
             sal = Sal(plataforma) 
@@ -376,6 +370,8 @@ while loop:
                 if contador_mosca %5 == 0: #Verifica se ja tem 5 (ou um múltiplo de 5) moscas
                     if vidas_restantes<3: #Verifica se a sapa já perdeu alguma vida
                         vidas_restantes+=1 #Adiciona 1 vida
+
+
 
         if rolagem > 0:
             placar += rolagem
@@ -433,6 +429,9 @@ while loop:
             game_over = False
             placar = 0 
             rolagem = 0
+            contador_mosca = 0
+            contador_vr = 0
+            contador_sal = 0
             
             #reposicionar a sapinha  
             sapa.rect.center = (janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
