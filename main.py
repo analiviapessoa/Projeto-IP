@@ -393,12 +393,18 @@ while loop:
         if vidas_restantes <= 0 :
             game_over = True
             morte.play()
+            vidas_restantes = 3
             
         
         #ver se a sapa caiu 
         if sapa.rect.top > janela_altura:
             game_over = True
             morte.play()
+
+        if sapa.rect.top > janela_altura and vidas_restantes>0:
+            game_over = True
+            morte.play()
+            vidas_restantes = 3
 
     #se a sapinha cair      
     else:
