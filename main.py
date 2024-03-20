@@ -343,6 +343,7 @@ while loop:
                     if pygame.sprite.collide_rect(sapa, vitoriaregia):
                         sapa.ativar_poder()  # Ativa o impulso ao colidir com a vitória-régia
                         som_vitoriaregia.play()  # Toca o som de upgrade
+                        contador_vr += 1 #Adiciona 1 ao contador de vitórias-régias
     
         if len(mosca_grupo) == 0 and placar > 100: 
             mosca = Mosca(plataforma_x, plataforma_y)
@@ -353,10 +354,10 @@ while loop:
         mosca_grupo.draw(tela)
 
         for mosca in mosca_grupo:
-            if pygame.sprite.collide_rect(sapa, mosca):
-                mosca.kill()
-                som_mosca.play()  
-                contador_mosca += 1
+            if pygame.sprite.collide_rect(sapa, mosca): #verifica se a sapa colidiu com a mosca 
+                mosca.kill()  # Tira a mosca da tela
+                som_mosca.play()  # Toca a música da mosca
+                contador_mosca += 1 # Adiciona 1 ao contador de mosca
 
         if len(sal_grupo) == 0 and contador_mosca >= 1:
             sal = Sal(plataforma_x, plataforma_y) 
@@ -366,10 +367,11 @@ while loop:
         sal_grupo.draw(tela)  
 
         for sal in sal_grupo :
-            if pygame.sprite.collide_rect(sapa, sal) :
-                sal.kill()
-                som_sal.play()
-                vidas_restantes -= 1
+                if pygame.sprite.collide_rect(sapa, sal) : # Verifica se a sapa colidiu com o saleiro
+                    sal.kill() # Tira o saleiro da tela
+                    som_sal.play() # Toca o som para o saleiro
+                    vidas_restantes -= 1 # Elimina 1 das 3 vidas da sapa
+                    contador_sal += 1 # Adiciona 1 ao contador de saleiro
 
 
         if rolagem > 0:
@@ -416,7 +418,6 @@ while loop:
         escrever_texto('Saleiros: ' + str(contador_sal), fonte1, azul, 145, 290)
         escrever_texto('Aperte espaço para tentar de novo', fonte1, azul, 25, 320)
         pygame.mixer.music.set_volume(0)
-        contador_mosca = 0
         
         #atualizar recorde
         if placar>recorde:
