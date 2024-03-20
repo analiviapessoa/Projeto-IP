@@ -356,7 +356,7 @@ while loop:
                 mosca.kill()  # Tira a mosca da tela
                 som_mosca.play()  # Toca a música da mosca
                 contador_mosca += 1 # Adiciona 1 ao contador de mosca
-
+         
         if len(sal_grupo) == 0 and contador_mosca >= 1:
             sal = Sal(plataforma_x, plataforma_y) 
             sal_grupo.add(sal)   
@@ -371,6 +371,14 @@ while loop:
                     vidas_restantes -= 1 # Elimina 1 das 3 vidas da sapa
                     contador_sal += 1 # Adiciona 1 ao contador de saleiro
 
+        for mosca in mosca_grupo:
+            if pygame.sprite.collide_rect(sapa, mosca): #verifica se a sapa colidiu com a mosca 
+                mosca.kill() # Tira a mosca da tela
+                som_mosca.play() # Toca o som da mosca  
+                contador_mosca += 1 # Adiciona 1 ao contador de mosca
+                if contador_mosca %5 == 0: #Verifica se ja tem 5 (ou um múltiplo de 5) moscas
+                    if vidas_restantes<3: #Verifica se a sapa já perdeu alguma vida
+                        vidas_restantes+=1 #Adiciona 1 vida
 
         if rolagem > 0:
             placar += rolagem
