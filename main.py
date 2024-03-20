@@ -60,8 +60,10 @@ efeito_fim_de_jogo = 0 #efeito tela fechando
 contador_mosca = 0
 pos_icone_mosca = (janela_largura - 180, 8.5)
 contador_sal = 0
-vidas = 3
-pos_icone_vidas = (janela_largura - 90, 8)
+vidas_restantes = 3
+pos_icone_vida1 = (janela_largura - 90, 8)
+pos_icone_vida2 = (janela_largura - 60, 8)
+pos_icone_vida3 = (janela_largura - 30, 8)
 
 # cores
 branco = (255, 255, 255)
@@ -86,17 +88,20 @@ def desenhar_painel():
     #exibir ícone da mosca
     tela.blit(pygame.transform.scale(mosca_imagem, (30, 20)), pos_icone_mosca)
 
+def desenhar_vidas():
+    if vidas_restantes >= 1:
+        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida1)
+    if vidas_restantes >= 2:
+        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida2)
+    if vidas_restantes >= 3:
+        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida3)
+
 
 # função para aparecer o background 
     
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
-
-def desenho_vidas() :
-    for i in range(vidas):
-        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vidas )
-
 
 
 #checar recorde
@@ -129,9 +134,10 @@ class Mosca(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(mosca_imagem, (30, 30))  
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = (x, y)  
 
-    def update(self, rolagem):
+
+    def update(self, rolagem, janela_altura):
         self.rect.y += rolagem
 
         if self.rect.top > janela_altura:
@@ -144,7 +150,7 @@ class Sal(pygame.sprite.Sprite) :
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
 
-    def update(self, rolagem)  :
+    def update(self, rolagem, janela_altura)  :
         self.rect.y += rolagem
 
         if self.rect.top > janela_altura :
@@ -340,10 +346,9 @@ while loop:
         if len(mosca_grupo) == 0 and placar > 100: 
             mosca = Mosca(plataforma_x, plataforma_y)
             mosca_grupo.add(mosca)
-
-    # Atualizar mosca
-        mosca_grupo.update(rolagem)
-    # Desenhar mosca
+        #atualizar mosca
+        mosca_grupo.update(rolagem, janela_altura)
+        #desenhar mosca
         mosca_grupo.draw(tela)
 
         for mosca in mosca_grupo:
@@ -352,17 +357,19 @@ while loop:
                 som_mosca.play()  
                 contador_mosca += 1
 
-        if len(sal_grupo) == 0 and contador_mosca >= 3:
+        if len(sal_grupo) == 0 and contador_mosca >= 1:
             sal = Sal(plataforma_x, plataforma_y) 
             sal_grupo.add(sal)   
 
-        sal_grupo.update(rolagem)
+        sal_grupo.update(rolagem, janela_altura)
         sal_grupo.draw(tela)  
 
         for sal in sal_grupo :
             if pygame.sprite.collide_rect(sapa, sal) :
                 sal.kill()
                 som_sal.play()
+                vidas_restantes -= 1
+
 
         if rolagem > 0:
             placar += rolagem
@@ -379,8 +386,14 @@ while loop:
         #desenhar painel 
         desenhar_painel()
 
-        #desenho vida
-        desenho_vidas()
+        #desenhar vidas 
+        desenhar_vidas()
+
+        if vidas_restantes <= 0 :
+            game_over = True
+            morte.play()
+            
+        
         #ver se a sapa caiu 
         if sapa.rect.top > janela_altura:
             game_over = True
@@ -393,8 +406,8 @@ while loop:
         escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 130, 250)
         escrever_texto('moscas: ' + str(contador_mosca), fonte1, azul, 135, 220)
         escrever_texto('aperte espaço para tentar de novo', fonte1, azul, 40, 300)
-        contador_mosca = 0 
         pygame.mixer.music.set_volume(0)
+        contador_mosca = 0
         
         #atualizar recorde
         if placar>recorde:
