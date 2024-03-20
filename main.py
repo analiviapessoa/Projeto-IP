@@ -367,7 +367,7 @@ while loop:
                 mosca.kill() # Tira a mosca da tela
                 som_mosca.play() # Toca o som da mosca  
                 contador_mosca += 1 # Adiciona 1 ao contador de mosca
-                if contador_mosca %5 == 0: #Verifica se ja tem 5 (ou um múltiplo de 5) moscas
+                if contador_mosca %4 == 0: #Verifica se ja tem 5 (ou um múltiplo de 5) moscas
                     if vidas_restantes<3: #Verifica se a sapa já perdeu alguma vida
                         vidas_restantes+=1 #Adiciona 1 vida
 
