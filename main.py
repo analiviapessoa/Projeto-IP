@@ -39,7 +39,7 @@ plataforma_imagem = pygame.image.load('imagens/platform.png') # imagem da plataf
 mosca_imagem = pygame.image.load('imagens/fly.png') # imagem da mosca
 vitoriaregia_imagem = pygame.image.load('imagens/vitoria_regia.png') # imagem da vitória-régia
 sal_imagem = pygame.image.load('imagens/sal.png') # imagem do sal
-tela_inicial_imagem = pygame.image.load('imagens/telainicial.jpeg') # imagem da tela inicial
+tela_inicial_imagem = pygame.image.load('imagens/ntelainicial.png') # imagem da tela inicial
 tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
 vida_imagem = pygame.image.load('imagens/vida.webp').convert_alpha()
 
