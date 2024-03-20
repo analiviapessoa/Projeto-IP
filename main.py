@@ -17,7 +17,6 @@ musica_de_fundo = pygame.mixer.music.load('audios/sapo_nao_lava.mp3') #música d
 pygame.mixer.music.play(-1,1.5)
 pygame.mixer.music.set_volume(1.5)
 
-
 morte = pygame.mixer.Sound('audios/morte.mp3')
 morte.set_volume(0.5)
 
@@ -34,6 +33,8 @@ som_sal.set_volume(0.5)
 sapa_imagem = pygame.image.load('imagens/sapa.png') # imagem da sapa
 background_imagem = pygame.image.load('imagens/ceu.png') # imagem do background
 background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
+game_over_imagem = pygame.image.load('gameover.png') # imagem da tela final
+game_over_imagem = pygame.transform.scale(game_over_imagem, (janela_largura, janela_altura)) # escala da tela final
 plataforma_imagem = pygame.image.load('imagens/platform.png') # imagem da plataforma
 mosca_imagem = pygame.image.load('imagens/fly.png') # imagem da mosca
 vitoriaregia_imagem = pygame.image.load('imagens/vitoria_regia.png') # imagem da vitória-régia
@@ -41,7 +42,6 @@ sal_imagem = pygame.image.load('imagens/sal.png') # imagem do sal
 tela_inicial_imagem = pygame.image.load('imagens/telainicial.jpeg') # imagem da tela inicial
 tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
 vida_imagem = pygame.image.load('imagens/vida.webp').convert_alpha()
-
 
 #frame
 clock = pygame.time.Clock()
@@ -71,7 +71,7 @@ azul = (0, 100, 120)
 azul_claro = (80, 200, 230)
 
 #fontes
-fonte1 = pygame.font.SysFont(None, 28)
+fonte1 = pygame.font.SysFont(None, 35)
 
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
@@ -95,13 +95,10 @@ def desenhar_vidas():
     if vidas_restantes >= 3:
         tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida3)
 
-
 # função para aparecer o background 
-    
 def draw_background(rolagem):
     tela.blit(background_imagem, (0, 0 + background_rolagem))
     tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
-
 
 #checar recorde
 if os.path.exists('placar.txt'):
@@ -112,17 +109,14 @@ else:
 
 class Vitoriaregia(pygame.sprite.Sprite):
 
-    def __init__(self, x, y):
+    def __init__(self, plataforma):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(vitoriaregia_imagem, (60, 50))
+        self.image = pygame.transform.scale(vitoriaregia_imagem, (60, 45))
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.center = (plataforma.rect.center)
+        self.rect.y -= 30
 
     def update(self, rolagem, janela_altura):
-
         self.rect.y += rolagem 
 
         if self.rect.top > janela_altura:
@@ -135,7 +129,6 @@ class Mosca(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)  
 
-
     def update(self, rolagem, janela_altura):
         self.rect.y += rolagem
 
@@ -143,19 +136,18 @@ class Mosca(pygame.sprite.Sprite):
             self.kill()  
 
 class Sal(pygame.sprite.Sprite) :
-    def __init__(self, x, y) :
+    def __init__(self, plataforma) :
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(sal_imagem, (35, 45))
         self.rect = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.rect.center = (plataforma.rect.center)
+        self.rect.y -= 40
 
     def update(self, rolagem, janela_altura)  :
         self.rect.y += rolagem
 
         if self.rect.top > janela_altura :
             self.kill()
-
-
 
 # jogador (sapa)
 class Jogador():
@@ -273,7 +265,6 @@ vitoriaregia_grupo = pygame.sprite.Group()
 mosca_grupo = pygame.sprite.Group()
 sal_grupo = pygame.sprite.Group()
 
-
 sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
 
 # plataforma inicial
@@ -292,7 +283,6 @@ while not iniciou_jogo:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             iniciou_jogo = True  
-
 
 while loop:
 
@@ -329,7 +319,7 @@ while loop:
 
         #gerar vitória-régia
         if len(vitoriaregia_grupo) == 0 and placar > 100:
-            vitoriaregia = Vitoriaregia(plataforma_x, plataforma_y)
+            vitoriaregia = Vitoriaregia(plataforma)
             vitoriaregia_grupo.add(vitoriaregia)
 
         #atualizar vitória-régia
@@ -344,7 +334,14 @@ while loop:
                         contador_vr += 1 #Adiciona 1 ao contador de vitórias-régias
     
         if len(mosca_grupo) == 0 and placar > 100: 
-            mosca = Mosca(plataforma_x, plataforma_y)
+            plataforma_x = random.randint(0, janela_largura - plataforma_largura)  # posição no eixo x da plataforma
+            plataforma_y = plataforma.rect.y - random.randint(100, 190)  # posição no eixo y da plataforma
+
+            # Garantir que a mosca seja gerada a pelo menos 20 pixels de distância das bordas das plataformas
+            mosca_x = random.randint(max(plataforma_x + 20, 20), min(plataforma_x + plataforma_largura - 20, janela_largura - 20))
+            mosca_y = plataforma_y
+
+            mosca = Mosca(mosca_x, mosca_y)
             mosca_grupo.add(mosca)
         #atualizar mosca
         mosca_grupo.update(rolagem, janela_altura)
@@ -358,7 +355,7 @@ while loop:
                 contador_mosca += 1 # Adiciona 1 ao contador de mosca
          
         if len(sal_grupo) == 0 and contador_mosca >= 1:
-            sal = Sal(plataforma_x, plataforma_y) 
+            sal = Sal(plataforma) 
             sal_grupo.add(sal)   
 
         sal_grupo.update(rolagem, janela_altura)
@@ -416,13 +413,11 @@ while loop:
 
     #se a sapinha cair      
     else:
-        tela.blit(background_imagem, (0,0))
-        escrever_texto('GAME OVER', fonte1, azul, 130, 200)
-        escrever_texto('PLACAR: ' + str(placar), fonte1, azul, 135, 220)
-        escrever_texto('Moscas: ' + str(contador_mosca), fonte1, azul, 150, 250)
-        escrever_texto('Vitórias-Régias: ' + str(contador_vr), fonte1, azul, 120, 270)
-        escrever_texto('Saleiros: ' + str(contador_sal), fonte1, azul, 145, 290)
-        escrever_texto('Aperte espaço para tentar de novo', fonte1, azul, 25, 320)
+        tela.blit(game_over_imagem, (0,0))
+        escrever_texto(str(placar), fonte1, branco, 190, 198)
+        escrever_texto(str(contador_mosca), fonte1, branco, 210, 230)
+        escrever_texto(str(contador_vr), fonte1, branco, 315, 265)
+        escrever_texto(str(contador_sal), fonte1, branco, 215, 300)
         pygame.mixer.music.set_volume(0)
         
         #atualizar recorde
