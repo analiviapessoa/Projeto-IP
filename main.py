@@ -282,7 +282,8 @@ iniciou_jogo = False
 while not iniciou_jogo:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            iniciou_jogo = True  
+            if event.key == pygame.K_SPACE:
+                iniciou_jogo = True 
 
 while loop:
 
