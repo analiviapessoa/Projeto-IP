@@ -5,7 +5,7 @@ import os
 import constantes
 from jogador import *
 from coletaveis import *
-
+#aa
 
 #iniciar
 pygame.init()
