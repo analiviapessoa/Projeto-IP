@@ -30,20 +30,15 @@ som_sal.set_volume(0.5)
 
 
 
-#variáveis do jogo 
-
 
 background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
 contador_mosca = 0
-pos_icone_mosca = (constantes.LARGURA - 180, 8.5)
 contador_sal = 0
 contador_vr = 0
 vidas_restantes = 3
-pos_icone_vida1 = (constantes.LARGURA - 90, 8)
-pos_icone_vida2 = (constantes.LARGURA - 60, 8)
-pos_icone_vida3 = (constantes.LARGURA - 30, 8)
+
 
 #fontes
 fonte1 = pygame.font.SysFont(None, 35)
@@ -60,15 +55,15 @@ def desenhar_painel():
     #exibir contador de moscas
     escrever_texto (': ' + str(contador_mosca), fonte1, constantes.AZUL, constantes.LARGURA - 148, 10)
     #exibir ícone da mosca
-    constantes.TELA.blit(pygame.transform.scale(constantes.MOSCA_IMAGEM, (30, 20)), pos_icone_mosca)
+    constantes.TELA.blit(pygame.transform.scale(constantes.MOSCA_IMAGEM, (30, 20)), constantes.POS_ICONE_MOSCA)
 
 def desenhar_vidas():
     if vidas_restantes >= 1:
-        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida1)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), constantes.POS_ICONE_VIDA1)
     if vidas_restantes >= 2:
-        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida2)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), constantes.POS_ICONE_VIDA2)
     if vidas_restantes >= 3:
-        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida3)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), constantes.POS_ICONE_VIDA3)
 
 # função para aparecer o background 
 def draw_background(rolagem):
