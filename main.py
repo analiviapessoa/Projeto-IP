@@ -28,18 +28,16 @@ som_mosca.set_volume(0.5)
 som_sal = pygame.mixer.Sound('audios/sal.mp3')
 som_sal.set_volume(0.5)
 
-
-
-
 background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
 contador_mosca = 0
 contador_sal = 0
 contador_vr = 0
-vidas_restantes = 3
+vidas_restantes= 3
 
 
+fonte1= pygame.font.SysFont(None, 35)
 
 
 #função para escrever na tela
@@ -50,9 +48,9 @@ def escrever_texto(texto, fonte, cor_texto, x, y):
 def desenhar_painel():
     pygame.draw.rect(constantes.TELA, constantes.AZUL_CLARO, (0,0, constantes.LARGURA, 30))
     pygame.draw.line(constantes.TELA, constantes.AZUL, (0, 30), (constantes.LARGURA, 30 ), 3) #placar em cima da tela 
-    escrever_texto('SCORE: ' + str(placar), constantes.FONTE1, constantes.AZUL, 10, 10) # pontuação 
+    escrever_texto('SCORE: ' + str(placar), fonte1, constantes.AZUL, 10, 10) # pontuação 
     #exibir contador de moscas
-    escrever_texto (': ' + str(contador_mosca), constantes.FONTE1, constantes.AZUL, constantes.LARGURA - 148, 10)
+    escrever_texto (': ' + str(contador_mosca), fonte1, constantes.AZUL, constantes.LARGURA - 148, 10)
     #exibir ícone da mosca
     constantes.TELA.blit(pygame.transform.scale(constantes.MOSCA_IMAGEM, (30, 20)), constantes.POS_ICONE_MOSCA)
 
@@ -348,7 +346,7 @@ while loop:
 
         #desenhar linha abaixo do recorde
             pygame.draw.line(constantes.TELA, constantes.PRETO, (0, placar - recorde + rolagem), (constantes.LARGURA, placar - recorde + rolagem), 3)
-            escrever_texto('RECORDE', constantes.FONTE1, constantes.PRETO, constantes.LARGURA - 130, placar - recorde + rolagem)
+            escrever_texto('RECORDE', fonte1, constantes.PRETO, constantes.LARGURA - 130, placar - recorde + rolagem)
 
         # adicionar as plataformas à tela
         platafroma_grupo.draw(constantes.TELA) 
@@ -380,10 +378,10 @@ while loop:
     #se a sapinha cair      
     else:
         constantes.TELA.blit(constantes.GAME_OVER_IMAGEM, (0,0))
-        escrever_texto(str(placar), constantes.FONTE1, constantes.BRANCO, 190, 198)
-        escrever_texto(str(contador_mosca), constantes.FONTE1, constantes.BRANCO, 210, 230)
-        escrever_texto(str(contador_vr), constantes.FONTE1, constantes.BRANCO, 315, 265)
-        escrever_texto(str(contador_sal), constantes.FONTE1, constantes.BRANCO, 215, 300)
+        escrever_texto(str(placar), fonte1, constantes.BRANCO, 190, 198)
+        escrever_texto(str(contador_mosca), fonte1, constantes.BRANCO, 210, 230)
+        escrever_texto(str(contador_vr), fonte1, constantes.BRANCO, 315, 265)
+        escrever_texto(str(contador_sal), fonte1, constantes.BRANCO, 215, 300)
         pygame.mixer.music.set_volume(0)
         
         #atualizar recorde
