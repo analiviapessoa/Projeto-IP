@@ -2,15 +2,14 @@
 import pygame
 import random
 import os
- 
+import constantes
+
+
 #iniciar
 pygame.init()
 
-#janela do jogo
-janela_largura = 400
-janela_altura =  600
-tela = pygame.display.set_mode((janela_largura, janela_altura)) # criar uma janela
-pygame.display.set_caption('flying froggy') # nome do jogo
+ # criar uma janela
+pygame.display.set_caption(constantes.TITULO_JOGO) # nome do jogo
 
 #músicas e efeitos sonoros
 musica_de_fundo = pygame.mixer.music.load('audios/sapo_nao_lava.mp3') #música de fundo
@@ -29,46 +28,22 @@ som_mosca.set_volume(0.5)
 som_sal = pygame.mixer.Sound('audios/sal.mp3')
 som_sal.set_volume(0.5)
 
-#imagens
-sapa_imagem = pygame.image.load('imagens/sapa.png') # imagem da sapa
-background_imagem = pygame.image.load('imagens/ceu.png') # imagem do background
-background_imagem = pygame.transform.scale(background_imagem, (janela_largura, janela_altura)) # escala do background
-game_over_imagem = pygame.image.load('gameover.png') # imagem da tela final
-game_over_imagem = pygame.transform.scale(game_over_imagem, (janela_largura, janela_altura)) # escala da tela final
-plataforma_imagem = pygame.image.load('imagens/platform.png') # imagem da plataforma
-mosca_imagem = pygame.image.load('imagens/fly.png') # imagem da mosca
-vitoriaregia_imagem = pygame.image.load('imagens/vitoria_regia.png') # imagem da vitória-régia
-sal_imagem = pygame.image.load('imagens/sal.png') # imagem do sal
-tela_inicial_imagem = pygame.image.load('imagens/ntelainicial.png') # imagem da tela inicial
-tela_inicial_imagem = pygame.transform.scale(tela_inicial_imagem, (janela_largura, janela_altura))
-vida_imagem = pygame.image.load('imagens/vida.webp').convert_alpha()
 
-#frame
-clock = pygame.time.Clock()
-FPS = 50
 
 #variáveis do jogo 
-rodar = 200
-gravidade = 1 # quão rápido a sapa cai (1 pixel)
-maximo_plataformas = 10 # máximo de plataformas na tela
-rolagem = 0
+
+
 background_rolagem = 0
 placar = 0 
 efeito_fim_de_jogo = 0 #efeito tela fechando 
 contador_mosca = 0
-pos_icone_mosca = (janela_largura - 180, 8.5)
+pos_icone_mosca = (constantes.LARGURA - 180, 8.5)
 contador_sal = 0
 contador_vr = 0
 vidas_restantes = 3
-pos_icone_vida1 = (janela_largura - 90, 8)
-pos_icone_vida2 = (janela_largura - 60, 8)
-pos_icone_vida3 = (janela_largura - 30, 8)
-
-# cores
-branco = (255, 255, 255)
-preto = (0, 0, 0)
-azul = (0, 100, 120)
-azul_claro = (80, 200, 230)
+pos_icone_vida1 = (constantes.LARGURA - 90, 8)
+pos_icone_vida2 = (constantes.LARGURA - 60, 8)
+pos_icone_vida3 = (constantes.LARGURA - 30, 8)
 
 #fontes
 fonte1 = pygame.font.SysFont(None, 35)
@@ -76,29 +51,29 @@ fonte1 = pygame.font.SysFont(None, 35)
 #função para escrever na tela
 def escrever_texto(texto, fonte, cor_texto, x, y):
     imagem = fonte.render(texto, True, cor_texto)
-    tela.blit(imagem, (x,y))
+    constantes.TELA.blit(imagem, (x,y))
 
 def desenhar_painel():
-    pygame.draw.rect(tela, azul_claro, (0,0, janela_largura, 30))
-    pygame.draw.line(tela, azul, (0, 30), (janela_largura, 30 ), 3) #placar em cima da tela 
-    escrever_texto('SCORE: ' + str(placar), fonte1, azul, 10, 10) # pontuação 
+    pygame.draw.rect(constantes.TELA, constantes.AZUL_CLARO, (0,0, constantes.LARGURA, 30))
+    pygame.draw.line(constantes.TELA, constantes.AZUL, (0, 30), (constantes.LARGURA, 30 ), 3) #placar em cima da tela 
+    escrever_texto('SCORE: ' + str(placar), fonte1, constantes.AZUL, 10, 10) # pontuação 
     #exibir contador de moscas
-    escrever_texto (': ' + str(contador_mosca), fonte1, azul, janela_largura - 148, 10)
+    escrever_texto (': ' + str(contador_mosca), fonte1, constantes.AZUL, constantes.LARGURA - 148, 10)
     #exibir ícone da mosca
-    tela.blit(pygame.transform.scale(mosca_imagem, (30, 20)), pos_icone_mosca)
+    constantes.TELA.blit(pygame.transform.scale(constantes.MOSCA_IMAGEM, (30, 20)), pos_icone_mosca)
 
 def desenhar_vidas():
     if vidas_restantes >= 1:
-        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida1)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida1)
     if vidas_restantes >= 2:
-        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida2)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida2)
     if vidas_restantes >= 3:
-        tela.blit(pygame.transform.scale(vida_imagem, (20, 20)), pos_icone_vida3)
+        constantes.TELA.blit(pygame.transform.scale(constantes.VIDA_IMAGEM, (20, 20)), pos_icone_vida3)
 
 # função para aparecer o background 
 def draw_background(rolagem):
-    tela.blit(background_imagem, (0, 0 + background_rolagem))
-    tela.blit(background_imagem, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
+    constantes.TELA.blit(constantes.BACKGROUND_IMAGEM, (0, 0 + background_rolagem))
+    constantes.TELA.blit(constantes.BACKGROUND_IMAGEM, (0, -600 + background_rolagem)) # dois backgrounds, um atrás do outro
 
 #checar recorde
 if os.path.exists('placar.txt'):
@@ -111,7 +86,7 @@ class Vitoriaregia(pygame.sprite.Sprite):
 
     def __init__(self, plataforma):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(vitoriaregia_imagem, (60, 45))
+        self.image = pygame.transform.scale(constantes.VITORIA_REGIA_IMAGEM, (60, 45))
         self.rect = self.image.get_rect()
         self.rect.center = (plataforma.rect.center)
         self.rect.y -= 30
@@ -125,7 +100,7 @@ class Vitoriaregia(pygame.sprite.Sprite):
 class Mosca(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(mosca_imagem, (30, 30))  
+        self.image = pygame.transform.scale(constantes.MOSCA_IMAGEM, (30, 30))  
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)  
 
@@ -138,7 +113,7 @@ class Mosca(pygame.sprite.Sprite):
 class Sal(pygame.sprite.Sprite) :
     def __init__(self, plataforma) :
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(sal_imagem, (35, 45))
+        self.image = pygame.transform.scale(constantes.SAL_IMAGEM, (35, 45))
         self.rect = self.image.get_rect()
         self.rect.center = (plataforma.rect.center)
         self.rect.y -= 40
@@ -152,7 +127,7 @@ class Sal(pygame.sprite.Sprite) :
 # jogador (sapa)
 class Jogador():
     def __init__(self, x, y):
-        self.image = pygame.transform.scale(sapa_imagem, (140, 140)) # escala da imagem
+        self.image = pygame.transform.scale(constantes.SAPA_IMAGEM , (140, 140)) # escala da imagem
         self.largura = 43 # largura do retângulo
         self.altura = 45 # altura do retângulo
         self.rect = pygame.Rect(0, 0, self.largura, self.altura) # criar um retângulo 
@@ -164,7 +139,7 @@ class Jogador():
         self.poder_ativo = True
         if self.poder_ativo :
             self. gravidade = 0.4 
-            FPS = 100
+            constantes.FPS = 100
 
     def desativar_poder(self) :
         self.poder_ativo = False
@@ -182,14 +157,14 @@ class Jogador():
         if key[pygame.K_d]:
             dx = 10 # mover 10 pixels para a direita
 
-        self.vel_y += gravidade # acelerar o pulo
+        self.vel_y += constantes.GRAVIDADE # acelerar o pulo
         dy += self.vel_y
 
         # colisão da tela (para a sapa não conseguir ir além da borda da janela do jogo) 
         if self.rect.left + dx < 0: # se a sapa for além da janela do lado esquerdo
             dx = - self.rect.left # parar quando alcançar a tela
-        if self.rect.right + dx > janela_largura: # se a sapa for além da janela do lado direito
-            dx = janela_largura - self.rect.right 
+        if self.rect.right + dx > constantes.LARGURA: # se a sapa for além da janela do lado direito
+            dx = constantes.LARGURA - self.rect.right 
 
 
         # colisão com as plataformas
@@ -201,7 +176,7 @@ class Jogador():
                         dy = 0
                         self.vel_y = -20
 
-        if self.rect.top <= rodar:
+        if self.rect.top <= (constantes.RODAR):
             if self.vel_y < 0:
                 rolagem = -dy # rolagem é o contrário do movimento da sapa
 
@@ -220,7 +195,7 @@ class Jogador():
         self.poder_ativo = False
 
     def draw(self): # 
-        tela.blit(self.image, (self.rect.x - 50, self.rect.y - 70))        
+        constantes.TELA.blit(self.image, (self.rect.x - 50, self.rect.y - 70))        
 
 #platafroma
 class Plataforma(pygame.sprite.Sprite): 
@@ -228,7 +203,7 @@ class Plataforma(pygame.sprite.Sprite):
     def __init__(self, x, y, largura, move):
 
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(plataforma_imagem, (largura, 50)) # escala da plataforma
+        self.image = pygame.transform.scale(constantes.PLATAFORMA_IMAGEM, (largura, 50)) # escala da plataforma
         self.mover = move
         self.contador_movimentos = random.randint(0,50)
         self.direcao = random.choice([-1,1])
@@ -249,7 +224,7 @@ class Plataforma(pygame.sprite.Sprite):
             self.rect.x += self.direcao * self.velocidade
         
         #mudar a direção da plataforma
-        if self.contador_movimentos>=100 or self.rect.left < 0 or self.rect.right > janela_largura:
+        if self.contador_movimentos>=100 or self.rect.left < 0 or self.rect.right > constantes.LARGURA:
             self.direcao *= -1
             self.contador_movimentos = 0
 
@@ -257,7 +232,7 @@ class Plataforma(pygame.sprite.Sprite):
         self.rect.y += rolagem 
 
          # excluir as plataformas que saem ta tela
-        if self.rect.top > janela_altura:
+        if self.rect.top > constantes.ALTURA:
             self.kill() 
     
 platafroma_grupo = pygame.sprite.Group()
@@ -265,17 +240,17 @@ vitoriaregia_grupo = pygame.sprite.Group()
 mosca_grupo = pygame.sprite.Group()
 sal_grupo = pygame.sprite.Group()
 
-sapa = Jogador(janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
+sapa = Jogador(constantes.LARGURA // 2, constantes.ALTURA - 150) # posição da sapa inicial 
 
 # plataforma inicial
-plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50, False)
+plataforma = Plataforma(constantes.LARGURA // 2 - 23, constantes.ALTURA - 100, 50, False)
 platafroma_grupo.add(plataforma)
 
 # loop do jogo
 game_over = False
 loop = True
 
-tela.blit(tela_inicial_imagem, (0, 0))  # desenho  da imagem na tela inicial
+constantes.TELA.blit(constantes.TELA_INICIAL_IMAGEM, (0, 0))  # desenho  da imagem na tela inicial
 pygame.display.update()  
 
 iniciou_jogo = False
@@ -287,10 +262,10 @@ while not iniciou_jogo:
 
 while loop:
 
-    clock.tick(FPS)
+    constantes.CLOCK.tick(constantes.FPS)
 
     if game_over == False:
-        FPS += 0.01
+        constantes.FPS += 0.01
         rolagem = sapa.move()
 
         #desenhar tela de fundo
@@ -300,9 +275,9 @@ while loop:
         draw_background(background_rolagem) # fazer com que o background apareça na tela
 
         #gerar plataforma
-        if len(platafroma_grupo) < maximo_plataformas:
+        if len(platafroma_grupo) < constantes.MAXIMO_PLATAFORMAS:
             plataforma_largura = random.randint(60, 100) # largura das plataformas (entre 60 e 100)
-            plataforma_x = random.randint(0, janela_largura - plataforma_largura) # posição no eixo x
+            plataforma_x = random.randint(0, constantes.LARGURA - plataforma_largura) # posição no eixo x
             plataforma_y = plataforma.rect.y - random.randint(100, 190) # posição no eixo y
             
             #plataformas que se movem
@@ -324,7 +299,7 @@ while loop:
             vitoriaregia_grupo.add(vitoriaregia)
 
         #atualizar vitória-régia
-        vitoriaregia_grupo.update(rolagem, janela_altura)
+        vitoriaregia_grupo.update(rolagem, constantes.ALTURA)
 
         for vitoriaregia in vitoriaregia_grupo :
             if pygame.sprite.collide_rect(sapa, vitoriaregia):
@@ -335,26 +310,26 @@ while loop:
                         contador_vr += 1 #Adiciona 1 ao contador de vitórias-régias
     
         if len(mosca_grupo) == 0 and placar > 100: 
-            plataforma_x = random.randint(0, janela_largura - plataforma_largura)  # posição no eixo x da plataforma
+            plataforma_x = random.randint(0, constantes.LARGURA - plataforma_largura)  # posição no eixo x da plataforma
             plataforma_y = plataforma.rect.y - random.randint(100, 190)  # posição no eixo y da plataforma
 
             # Garantir que a mosca seja gerada a pelo menos 20 pixels de distância das bordas das plataformas
-            mosca_x = random.randint(max(plataforma_x + 20, 20), min(plataforma_x + plataforma_largura - 20, janela_largura - 20))
+            mosca_x = random.randint(max(plataforma_x + 20, 20), min(plataforma_x + plataforma_largura - 20, constantes.LARGURA - 20))
             mosca_y = plataforma_y
 
             mosca = Mosca(mosca_x, mosca_y)
             mosca_grupo.add(mosca)
         #atualizar mosca
-        mosca_grupo.update(rolagem, janela_altura)
+        mosca_grupo.update(rolagem, constantes.ALTURA)
         #desenhar mosca
-        mosca_grupo.draw(tela)
+        mosca_grupo.draw(constantes.TELA)
          
         if len(sal_grupo) == 0 and contador_mosca >= 1:
             sal = Sal(plataforma) 
             sal_grupo.add(sal)   
 
-        sal_grupo.update(rolagem, janela_altura)
-        sal_grupo.draw(tela)  
+        sal_grupo.update(rolagem, constantes.ALTURA)
+        sal_grupo.draw(constantes.TELA)  
 
         for sal in sal_grupo :
                 if pygame.sprite.collide_rect(sapa, sal) : # Verifica se a sapa colidiu com o saleiro
@@ -378,12 +353,12 @@ while loop:
             placar += rolagem
 
         #desenhar linha abaixo do recorde
-            pygame.draw.line(tela, preto, (0, placar - recorde + rolagem), (janela_largura, placar - recorde + rolagem), 3)
-            escrever_texto('RECORDE', fonte1, preto, janela_largura - 130, placar - recorde + rolagem)
+            pygame.draw.line(constantes.TELA, constantes.PRETO, (0, placar - recorde + rolagem), (constantes.LARGURA, placar - recorde + rolagem), 3)
+            escrever_texto('RECORDE', fonte1, constantes.PRETO, constantes.LARGURA - 130, placar - recorde + rolagem)
 
         # adicionar as plataformas à tela
-        platafroma_grupo.draw(tela) 
-        vitoriaregia_grupo.draw(tela)
+        platafroma_grupo.draw(constantes.TELA) 
+        vitoriaregia_grupo.draw(constantes.TELA)
         sapa.draw()
 
         #desenhar painel 
@@ -399,22 +374,22 @@ while loop:
             
         
         #ver se a sapa caiu 
-        if sapa.rect.top > janela_altura:
+        if sapa.rect.top > constantes.ALTURA:
             game_over = True
             morte.play()
 
-        if sapa.rect.top > janela_altura and vidas_restantes>0:
+        if sapa.rect.top > constantes.ALTURA and vidas_restantes>0:
             game_over = True
             morte.play()
             vidas_restantes = 3
 
     #se a sapinha cair      
     else:
-        tela.blit(game_over_imagem, (0,0))
-        escrever_texto(str(placar), fonte1, branco, 190, 198)
-        escrever_texto(str(contador_mosca), fonte1, branco, 210, 230)
-        escrever_texto(str(contador_vr), fonte1, branco, 315, 265)
-        escrever_texto(str(contador_sal), fonte1, branco, 215, 300)
+        constantes.TELA.blit(constantes.GAME_OVER_IMAGEM, (0,0))
+        escrever_texto(str(placar), fonte1, constantes.BRANCO, 190, 198)
+        escrever_texto(str(contador_mosca), fonte1, constantes.BRANCO, 210, 230)
+        escrever_texto(str(contador_vr), fonte1, constantes.BRANCO, 315, 265)
+        escrever_texto(str(contador_sal), fonte1, constantes.BRANCO, 215, 300)
         pygame.mixer.music.set_volume(0)
         
         #atualizar recorde
@@ -435,13 +410,13 @@ while loop:
             contador_sal = 0
             
             #reposicionar a sapinha  
-            sapa.rect.center = (janela_largura // 2, janela_altura - 150) # posição da sapa inicial 
+            sapa.rect.center = (constantes.LARGURA // 2, constantes.ALTURA - 150) # posição da sapa inicial 
             
             #resetar as plataformas
             platafroma_grupo.empty()
             
             #cria a plataforma de início (de novo)
-            plataforma = Plataforma(janela_largura // 2 - 23, janela_altura - 100, 50, plataforma_movendo)
+            plataforma = Plataforma (constantes.LARGURA // 2 - 23, constantes.ALTURA - 100, 50, plataforma_movendo)
             platafroma_grupo.add(plataforma)
             
             #reiniciar musica 
@@ -450,7 +425,7 @@ while loop:
             pygame.mixer.music.set_volume(1.5)
 
             #reiniciar velocidade do jogo 
-            FPS = 50 
+            constantes.FPS = 50 
 
     for event in pygame.event.get(): # sair do jogo
         if event.type == pygame.QUIT:
